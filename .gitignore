@@ -1,0 +1,11 @@
+*.pyc
+/__pycache__/
+/venv/
+/.idea/
+.gitlab-ci.yml
+.gitkeep
+.env
+
+postgresql/data
+airflow/backups
+airflow/logs
