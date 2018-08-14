@@ -4,15 +4,13 @@ from flask_admin import BaseView, expose
 
 # Importing base classes that we need to derive
 from prometheus_client import core
-from prometheus_client.core import REGISTRY
-from prometheus_exporter.db.store import get_context        
+from prometheus_client.core import GaugeMetricFamily, REGISTRY
+from prometheus_exporter.db.store import get_context
 from sqlalchemy import func
 import copy
 from airflow.www.app import csrf
 from airflow.models import DagRun, TaskInstance
 
-
-from prometheus_client.core import GaugeMetricFamily, REGISTRY
 
 
 @get_context()
