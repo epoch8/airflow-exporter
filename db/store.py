@@ -29,7 +29,7 @@ def get_context():
         def wrapper(*args, **kwargs):
             # noinspection PyUnusedLocal
             with session_scope() as session:
-                return function(*args, **kwargs, connection=session)
+                return function(connection=session, *args, **kwargs)
 
         return wrapper
 
