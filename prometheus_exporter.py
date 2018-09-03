@@ -9,7 +9,7 @@ from prometheus_exporter.db.store import get_context
 from sqlalchemy import func
 import copy
 from airflow.www.app import csrf
-from airflow.models import DagRun, TaskInstance
+from airflow.models import DagStat, TaskInstance, DagModel
 
 
 
@@ -19,9 +19,13 @@ def get_dag_state_info(connection):
     :param connection: session in db
     :return dag_info
     '''
+    dag_status_query = connection.query(
+        DagStat.dag_id, DagStat.state, DagStat.count
+    ).group_by(DagStat.dag_id, DagStat.state).subquery()
     return connection.query(
-        DagRun.dag_id, DagRun.state, func.count(DagRun.dag_id).label('value')
-    ).group_by(DagRun.dag_id, DagRun.state).all()
+        DagStat.dag_id, DagStat.state, DagStat.count,
+        DagModel.owners
+    ).join(DagModel, DagModel.dag_id == DagStat.dag_id).all()
 
 
 @get_context()
@@ -30,10 +34,15 @@ def get_task_state_info(connection):
     :param connection: session in db
     :return task_info
     '''
-    return connection.query(
+    task_status_query = connection.query(
         TaskInstance.dag_id, TaskInstance.task_id,
         TaskInstance.state, func.count(TaskInstance.dag_id).label('value')
-    ).group_by(TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state).all()
+    ).group_by(TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state).subquery()
+    return connection.query(
+        task_status_query.c.dag_id, task_status_query.c.task_id,
+        task_status_query.c.state, task_status_query.c.value, DagModel.owners
+    ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).all()
+
 
 
 class MetricsCollector(object):
@@ -44,20 +53,20 @@ class MetricsCollector(object):
         t_state = GaugeMetricFamily(
             'airflow_task_status',
             'Shows the number of task starts with this status',
-            labels=['dag_id', 'task_id', 'status']
+            labels=['dag_id', 'task_id', 'owner', 'status']
         )
         for task in task_info:
-            t_state.add_metric([task.dag_id, task.task_id, task.state], task.value)
+            t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state], task.value)
         yield copy.copy(t_state)
 
         dag_info = get_dag_state_info()
         d_state = GaugeMetricFamily(
             'airflow_dag_status',
             'Shows the number of dag starts with this status',
-            labels=['dag_id', 'status']
+            labels=['dag_id', 'owner', 'status']
         )
         for dag in dag_info:
-            d_state.add_metric([dag.dag_id, dag.state], dag.value)
+            d_state.add_metric([dag.dag_id, dag.owners, dag.state], dag.count)
         yield d_state
 
 
