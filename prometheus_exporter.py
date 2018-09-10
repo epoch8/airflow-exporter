@@ -9,8 +9,8 @@ from prometheus_exporter.db.store import get_context
 from sqlalchemy import func
 import copy
 from airflow.www.app import csrf
-from airflow.models import DagStat, TaskInstance, DagModel
-
+from airflow.models import DagStat, TaskInstance, DagModel, DagRun
+from airflow.utils.state import State
 
 
 @get_context()
@@ -44,11 +44,32 @@ def get_task_state_info(connection):
     ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).all()
 
 
+@get_context()
+def get_dag_duration_info(connection):
+    '''get duration of currently running DagRuns
+    :param connection: session in db
+    :return dag_info
+    '''
+    duration = func.sum(func.now() - DagRun.start_date)
+
+    return connection.query(
+        DagRun.dag_id,
+        DagRun.run_id,
+        duration.label('duration')
+    ).group_by(
+        DagRun.dag_id,
+        DagRun.run_id
+    ).filter(
+        DagRun.state == State.RUNNING
+    ).all()
+
 
 class MetricsCollector(object):
     '''collection of metrics for prometheus'''
     def collect(self):
         '''collect metrics'''
+
+        # Task metrics
         task_info = get_task_state_info()
         t_state = GaugeMetricFamily(
             'airflow_task_status',
@@ -59,6 +80,7 @@ class MetricsCollector(object):
             t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state], task.value)
         yield copy.copy(t_state)
 
+        # Dag Metrics
         dag_info = get_dag_state_info()
         d_state = GaugeMetricFamily(
             'airflow_dag_status',
@@ -68,6 +90,17 @@ class MetricsCollector(object):
         for dag in dag_info:
             d_state.add_metric([dag.dag_id, dag.owners, dag.state], dag.count)
         yield d_state
+
+        # DagRun metrics
+        dag_duration = GaugeMetricFamily(
+            'airflow_dag_run_duration',
+            'Duration of currently running dag_runs in seconds',
+            labels=['dag_id', 'run_id']
+        )
+        for dag in get_dag_duration_info():
+            dag_duration.add_metric([dag.dag_id, dag.run_id], dag.duration.seconds)
+        yield dag_duration
+
 
 
 REGISTRY.register(MetricsCollector())
