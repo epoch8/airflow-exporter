@@ -1,7 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.1] - 2018-08-10
-# Added
-- owner in metrics
-- description dag for all state
+## 0.2 - 2018-09-10 more labels
+
+Added:
+- `owner` label in metrics `dag_status` and `task_status`
+- explicit 0 metric for each state in `dag_status`
+
+## 0.1 - 2018-08-07 initial release
+
