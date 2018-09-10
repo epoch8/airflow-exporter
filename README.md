@@ -36,6 +36,7 @@ Labels:
 
 * `dag_id`
 * `task_id`
+* `owner`
 * `status`
 
 Value: number of tasks in specific status.
@@ -45,6 +46,7 @@ Value: number of tasks in specific status.
 Labels:
 
 * `dag_id`
+* `owner`
 * `status`
 
 Value: number of dags in specific status.
