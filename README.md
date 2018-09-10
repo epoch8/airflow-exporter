@@ -51,6 +51,15 @@ Labels:
 
 Value: number of dags in specific status.
 
+### `airflow_dag_run_duration`
+
+Labels:
+
+* `dag_id`: unique identifier for a given DAG
+* `run_id`: unique identifier created each time a DAG is run
+
+Value: duration in seconds that a DAG Run has been running for. This metric is not available for DAGs that have already completed.
+
 ## License
 
 Distributed under the BSD license. See [LICENSE](LICENSE) for more
