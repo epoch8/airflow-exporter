@@ -7,7 +7,6 @@ from prometheus_client import core
 from prometheus_client.core import GaugeMetricFamily, REGISTRY
 from prometheus_exporter.db.store import get_context
 from sqlalchemy import func
-import copy
 from airflow.www.app import csrf
 from airflow.models import DagStat, TaskInstance, DagModel
 
@@ -57,7 +56,7 @@ class MetricsCollector(object):
         )
         for task in task_info:
             t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state], task.value)
-        yield copy.copy(t_state)
+        yield t_state
 
         dag_info = get_dag_state_info()
         d_state = GaugeMetricFamily(
