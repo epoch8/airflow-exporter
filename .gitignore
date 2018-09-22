@@ -6,10 +6,5 @@
 .gitkeep
 .env
 
-example/airflow-exporter-python2/postgresql/data
-example/airflow-exporter-python2/airflow/logs
-example/airflow-exporter-python2/airflow/backups
-
-example/airflow-exporter-python3/postgresql/data
-example/airflow-exporter-python3/airflow/logs
-example/airflow-exporter-python3/airflow/backups
+tests/*/postgresql/data
+tests/*/airflow/logs

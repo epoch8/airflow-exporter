@@ -26,10 +26,8 @@ services:
             - POSTGRES_PASSWORD=airflowpass
             - POSTGRES_DB=airflow
         volumes:
-            - ./airflow/dags:/usr/local/airflow/dags
-            - ../../prometheus_exporter.py:/usr/local/airflow/plugins/prometheus_exporter/prometheus_exporter.py
-            - ../../db:/usr/local/airflow/plugins/prometheus_exporter/db
-            - ../../__init__.py:/usr/local/airflow/plugins/prometheus_exporter/__init__.py
+            - ../dags:/usr/local/airflow/dags
+            - ../..:/usr/local/airflow/plugins/airflow-exporter-0.000
             - ./airflow/logs:/usr/local/airflow/logs
         ports:
             - "8080:8080"
