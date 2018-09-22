@@ -1,57 +1,52 @@
-from airflow.plugins_manager import AirflowPlugin
+from sqlalchemy import func
 
 from flask_admin import BaseView, expose
 
-# Importing base classes that we need to derive
-from prometheus_client import core
-from prometheus_client.core import GaugeMetricFamily, REGISTRY
-from prometheus_exporter.db.store import get_context
-from sqlalchemy import func
+from airflow.plugins_manager import AirflowPlugin
+from airflow.settings import Session
 from airflow.www.app import csrf
 from airflow.models import DagStat, TaskInstance, DagModel, DagRun
 from airflow.utils.state import State
 
+# Importing base classes that we need to derive
+from prometheus_client import core
+from prometheus_client.core import GaugeMetricFamily, REGISTRY
 
-@get_context()
-def get_dag_state_info(connection):
+
+def get_dag_state_info():
     '''get dag info
-    :param connection: session in db
     :return dag_info
     '''
-    dag_status_query = connection.query(
+    dag_status_query = Session.query(
         DagStat.dag_id, DagStat.state, DagStat.count
     ).group_by(DagStat.dag_id, DagStat.state).subquery()
-    return connection.query(
+    return Session.query(
         DagStat.dag_id, DagStat.state, DagStat.count,
         DagModel.owners
     ).join(DagModel, DagModel.dag_id == DagStat.dag_id).all()
 
 
-@get_context()
-def get_task_state_info(connection):
+def get_task_state_info():
     '''get task info
-    :param connection: session in db
     :return task_info
     '''
-    task_status_query = connection.query(
+    task_status_query = Session.query(
         TaskInstance.dag_id, TaskInstance.task_id,
         TaskInstance.state, func.count(TaskInstance.dag_id).label('value')
     ).group_by(TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state).subquery()
-    return connection.query(
+    return Session.query(
         task_status_query.c.dag_id, task_status_query.c.task_id,
         task_status_query.c.state, task_status_query.c.value, DagModel.owners
     ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).all()
 
 
-@get_context()
-def get_dag_duration_info(connection):
+def get_dag_duration_info():
     '''get duration of currently running DagRuns
-    :param connection: session in db
     :return dag_info
     '''
     duration = func.sum(func.now() - DagRun.start_date)
 
-    return connection.query(
+    return Session.query(
         DagRun.dag_id,
         DagRun.run_id,
         duration.label('duration')
