@@ -9,35 +9,54 @@ from airflow.models import DagStat, TaskInstance, DagModel, DagRun
 from airflow.utils.state import State
 
 # Importing base classes that we need to derive
-from prometheus_client import core
+from prometheus_client import core, generate_latest
 from prometheus_client.core import GaugeMetricFamily, REGISTRY
+
+from contextlib import contextmanager
+
+
+@contextmanager
+def session_scope(session):
+    """
+    Provide a transactional scope around a series of operations.
+    """
+    try:
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 def get_dag_state_info():
     '''get dag info
     :return dag_info
     '''
-    dag_status_query = Session.query(
-        DagStat.dag_id, DagStat.state, DagStat.count
-    ).group_by(DagStat.dag_id, DagStat.state).subquery()
-    return Session.query(
-        DagStat.dag_id, DagStat.state, DagStat.count,
-        DagModel.owners
-    ).join(DagModel, DagModel.dag_id == DagStat.dag_id).all()
+    with session_scope(Session) as session:
+        dag_status_query = session.query(
+            DagStat.dag_id, DagStat.state, DagStat.count
+        ).group_by(DagStat.dag_id, DagStat.state).subquery()
+        return session.query(
+            DagStat.dag_id, DagStat.state, DagStat.count,
+            DagModel.owners
+        ).join(DagModel, DagModel.dag_id == DagStat.dag_id).all()
 
 
 def get_task_state_info():
     '''get task info
     :return task_info
     '''
-    task_status_query = Session.query(
-        TaskInstance.dag_id, TaskInstance.task_id,
-        TaskInstance.state, func.count(TaskInstance.dag_id).label('value')
-    ).group_by(TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state).subquery()
-    return Session.query(
-        task_status_query.c.dag_id, task_status_query.c.task_id,
-        task_status_query.c.state, task_status_query.c.value, DagModel.owners
-    ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).all()
+    with session_scope(Session) as session:
+        task_status_query = session.query(
+            TaskInstance.dag_id, TaskInstance.task_id,
+            TaskInstance.state, func.count(TaskInstance.dag_id).label('value')
+        ).group_by(TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state).subquery()
+        return session.query(
+            task_status_query.c.dag_id, task_status_query.c.task_id,
+            task_status_query.c.state, task_status_query.c.value, DagModel.owners
+        ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).all()
 
 
 def get_dag_duration_info():
@@ -46,16 +65,17 @@ def get_dag_duration_info():
     '''
     duration = func.sum(func.now() - DagRun.start_date)
 
-    return Session.query(
-        DagRun.dag_id,
-        DagRun.run_id,
-        duration.label('duration')
-    ).group_by(
-        DagRun.dag_id,
-        DagRun.run_id
-    ).filter(
-        DagRun.state == State.RUNNING
-    ).all()
+    with session_scope(Session) as session:
+        return session.query(
+            DagRun.dag_id,
+            DagRun.run_id,
+            duration.label('duration')
+        ).group_by(
+            DagRun.dag_id,
+            DagRun.run_id
+        ).filter(
+            DagRun.state == State.RUNNING
+        ).all()
 
 
 class MetricsCollector(object):
@@ -98,35 +118,6 @@ class MetricsCollector(object):
 
 
 REGISTRY.register(MetricsCollector())
-
-
-def generate_latest(registry=REGISTRY):
-    '''Returns the metrics from the registry in latest text format as a string.'''
-    output = []
-    for metric in registry.collect():
-        output.append(
-            '# HELP {0} {1}'.format(
-                metric.name,
-                metric.documentation.replace('\\', r'\\').replace('\n', r'\n')
-            )
-        )
-        output.append('\n# TYPE {0} {1}\n'.format(metric.name, metric.type))
-        for name, labels, value in metric.samples:
-            if labels:
-                label_text = '{{{0}}}'.format(','.join(
-                    [
-                        '{0}="{1}"'.format(
-                            k,
-                            v.replace(
-                                '\\', r'\\'
-                            ).replace('\n', r'\n').replace('"', r'\"') if v else '')
-                        for k, v in sorted(labels.items())
-                    ]))
-            else:
-                label_text = ''
-            output.append('{0}{1} {2}\n'.format(
-                name, label_text, core._floatToGoString(value)))
-    return ''.join(output).encode('utf-8')
 
 
 class Metrics(BaseView):
