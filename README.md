@@ -6,10 +6,6 @@ Exposes dag and task based metrics from Airflow to a Prometheus compatible endpo
 
 <img src="https://epoch8.github.io/media/2018/08/03/monitoring-airflow-with-prometheus/metrics_screenshot.png" height="400" width="600"/>
 
-## Compatibility
-
-Current version of `airflow-exporter` is compatibile with Airflow &le; 1.9, **it's not compatible with Airflow 1.10**.
-
 ## Install
 
 Install project requirements:
