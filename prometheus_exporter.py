@@ -1,16 +1,16 @@
 from sqlalchemy import func
 
+from flask import Response
 from flask_admin import BaseView, expose
 
 from airflow.plugins_manager import AirflowPlugin
 from airflow.settings import Session
-from airflow.www.app import csrf
 from airflow.models import DagStat, TaskInstance, DagModel, DagRun
 from airflow.utils.state import State
 
 # Importing base classes that we need to derive
-from prometheus_client import core, generate_latest
-from prometheus_client.core import GaugeMetricFamily, REGISTRY
+from prometheus_client import generate_latest, REGISTRY
+from prometheus_client.core import GaugeMetricFamily
 
 from contextlib import contextmanager
 
@@ -91,7 +91,7 @@ class MetricsCollector(object):
             labels=['dag_id', 'task_id', 'owner', 'status']
         )
         for task in task_info:
-            t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state], task.value)
+            t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state or 'none'], task.value)
         yield t_state
 
         # Dag Metrics
@@ -116,14 +116,12 @@ class MetricsCollector(object):
         yield dag_duration
 
 
-
 REGISTRY.register(MetricsCollector())
 
 
 class Metrics(BaseView):
     @expose('/')
     def index(self):
-        from flask import Response
         return Response(generate_latest(), mimetype='text')
 
 
