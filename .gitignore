@@ -5,6 +5,7 @@
 .gitlab-ci.yml
 .gitkeep
 .env
+.vscode/
 
 tests/*/postgresql/data
 tests/*/airflow/logs
