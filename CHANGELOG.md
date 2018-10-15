@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.4 - 2018-10-15
+
+- Fix [#14](https://github.com/epoch8/airflow-exporter/issues/14): Airflow 1.10 compatibility by @jmcarp
+- Fix [#16](https://github.com/epoch8/airflow-exporter/issues/16): Exception during scrape
+
 ## 0.3 - 2018-09-12
 
 - [#11](https://github.com/epoch8/airflow-exporter/pull/11): Added metric for duration of DagRuns by @hydrosquall
