@@ -1,16 +1,16 @@
 from sqlalchemy import func
 
+from flask import Response
 from flask_admin import BaseView, expose
 
 from airflow.plugins_manager import AirflowPlugin
 from airflow.settings import Session
-from airflow.www.app import csrf
 from airflow.models import DagStat, TaskInstance, DagModel, DagRun
 from airflow.utils.state import State
 
 # Importing base classes that we need to derive
-from prometheus_client import core
-from prometheus_client.core import GaugeMetricFamily, REGISTRY
+from prometheus_client import generate_latest, REGISTRY
+from prometheus_client.core import GaugeMetricFamily
 
 
 def get_dag_state_info():
@@ -71,7 +71,7 @@ class MetricsCollector(object):
             labels=['dag_id', 'task_id', 'owner', 'status']
         )
         for task in task_info:
-            t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state], task.value)
+            t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state or 'none'], task.value)
         yield t_state
 
         # Dag Metrics
@@ -96,43 +96,12 @@ class MetricsCollector(object):
         yield dag_duration
 
 
-
 REGISTRY.register(MetricsCollector())
-
-
-def generate_latest(registry=REGISTRY):
-    '''Returns the metrics from the registry in latest text format as a string.'''
-    output = []
-    for metric in registry.collect():
-        output.append(
-            '# HELP {0} {1}'.format(
-                metric.name,
-                metric.documentation.replace('\\', r'\\').replace('\n', r'\n')
-            )
-        )
-        output.append('\n# TYPE {0} {1}\n'.format(metric.name, metric.type))
-        for name, labels, value in metric.samples:
-            if labels:
-                label_text = '{{{0}}}'.format(','.join(
-                    [
-                        '{0}="{1}"'.format(
-                            k,
-                            v.replace(
-                                '\\', r'\\'
-                            ).replace('\n', r'\n').replace('"', r'\"') if v else '')
-                        for k, v in sorted(labels.items())
-                    ]))
-            else:
-                label_text = ''
-            output.append('{0}{1} {2}\n'.format(
-                name, label_text, core._floatToGoString(value)))
-    return ''.join(output).encode('utf-8')
 
 
 class Metrics(BaseView):
     @expose('/')
     def index(self):
-        from flask import Response
         return Response(generate_latest(), mimetype='text')
 
 
