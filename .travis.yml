@@ -6,8 +6,9 @@ services:
 # Docker-compose setup
 # https://docs.travis-ci.com/user/docker/
 env:
-  - DOCKER_COMPOSE_VERSION=1.9.0
-  - AIRFLOW_SLEEP_DURATION=60 # Number of seconds to wait for airflow to start
+  global:
+    - DOCKER_COMPOSE_VERSION=1.9.0
+    - AIRFLOW_SLEEP_DURATION=60 # Number of seconds to wait for airflow to start
 
 before_install:
   - sudo rm /usr/local/bin/docker-compose
