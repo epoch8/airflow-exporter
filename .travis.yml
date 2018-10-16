@@ -1,5 +1,13 @@
+sudo: required
+
+services:
+  - docker
+
+# Docker-compose setup
+# https://docs.travis-ci.com/user/docker/
 env:
   - DOCKER_COMPOSE_VERSION=1.9.0
+  - AIRFLOW_SLEEP_DURATION=60 # Number of seconds to wait for airflow to start
 
 before_install:
   - sudo rm /usr/local/bin/docker-compose
@@ -8,6 +16,15 @@ before_install:
   - sudo mv docker-compose /usr/local/bin
 
 script:
+
+  # Test Airflow 1.8 with Python 2
   - cd tests/airflow1.8-py2 && docker-compose up -d
-  - pwd && sleep 30 # not sure how to dynamically wait
-  - curl http://localhost:8080/admin/metrics
+  - pwd && sleep ${AIRFLOW_SLEEP_DURATION}
+  - curl http://localhost:8080/admin/metrics/
+  - docker-compose down
+
+  # Test Airflow 1.9 with Python 3
+  - cd ../../tests/airflow1.9-py3 && docker-compose up -d
+  - pwd && sleep ${AIRFLOW_SLEEP_DURATION}
+  - curl http://localhost:8080/admin/metrics/
+  - docker-compose down
