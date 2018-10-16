@@ -8,26 +8,22 @@ services:
 env:
   global:
     - DOCKER_COMPOSE_VERSION=1.9.0
-    - AIRFLOW_SLEEP_DURATION=60 # Number of seconds to wait for airflow to start
-    - METRICS_ENDPOINT=http://localhost:8080/admin/metrics/
-    - CURL_FLAGS=--show-error --fail
-
+    - INTEGRATION_TEST_SCRIPT=test_metrics_up.sh
+    
 before_install:
   - sudo rm /usr/local/bin/docker-compose
   - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
+  - chmod +x tests/test_metrics_up.sh
 
 script:
-
   # Test Airflow 1.8 with Python 2
   - cd tests/airflow1.8-py2 && docker-compose up -d
-  - sleep ${AIRFLOW_SLEEP_DURATION}
-  - curl ${CURL_FLAGS} ${METRICS_ENDPOINT}
+  - ../${INTEGRATION_TEST_SCRIPT}
   - docker-compose down
 
   # Test Airflow 1.9 with Python 3
   - cd ../../tests/airflow1.9-py3 && docker-compose up -d
-  - sleep ${AIRFLOW_SLEEP_DURATION}
-  - curl ${CURL_FLAGS} ${METRICS_ENDPOINT}
+  - ../${INTEGRATION_TEST_SCRIPT}
   - docker-compose down
