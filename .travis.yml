@@ -1,4 +1,4 @@
-sudo: required
+sudo: false
 
 services:
   - docker
@@ -16,14 +16,15 @@ before_install:
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
   - chmod +x tests/test_metrics_up.sh
+  
 
 script:
   # Test Airflow 1.8 with Python 2
   - cd tests/airflow1.8-py2 && docker-compose up -d
-  - ../${INTEGRATION_TEST_SCRIPT}
+  - ${TRAVIS_BUILD_DIR}/tests/${INTEGRATION_TEST_SCRIPT}
   - docker-compose down
 
   # Test Airflow 1.9 with Python 3
-  - cd ../../tests/airflow1.9-py3 && docker-compose up -d
-  - ../${INTEGRATION_TEST_SCRIPT}
+  - cd ${TRAVIS_BUILD_DIR}/tests/airflow1.9-py3 && docker-compose up -d
+  - ${TRAVIS_BUILD_DIR}/tests/${INTEGRATION_TEST_SCRIPT}
   - docker-compose down
