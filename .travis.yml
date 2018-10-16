@@ -9,4 +9,5 @@ before_install:
 
 script:
   - cd tests/airflow1.8-py2 && docker-compose up -d
+  - pwd && sleep 30 # not sure how to dynamically wait
   - curl http://localhost:8080/admin/metrics
