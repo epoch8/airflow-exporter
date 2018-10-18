@@ -24,6 +24,7 @@ services:
             - POSTGRES_USER=airflow
             - POSTGRES_PASSWORD=airflowpass
             - POSTGRES_DB=airflow
+            - HOST_USER_ID=$UID # need to write to mounted files
         volumes:
             - ../dags:/usr/local/airflow/dags
             - ../..:/usr/local/airflow/plugins/airflow-exporter-0.000

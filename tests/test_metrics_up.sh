@@ -13,7 +13,7 @@ CURL_FLAGS="--show-error --fail"
 
 echo "Waiting ${AIRFLOW_SLEEP_DURATION} seconds for Airflow to start before pinging"
 sleep ${AIRFLOW_SLEEP_DURATION}
-curl ${CURL_FLAGS} --silent ${ADMIN_ENDPOINT} && echo 'Admin console is up'
+curl ${CURL_FLAGS} --silent --output /dev/null ${ADMIN_ENDPOINT} && echo 'Admin console is up'
 curl ${CURL_FLAGS} ${METRICS_ENDPOINT}
 
 # TODO: validate the contents of the CURLed data

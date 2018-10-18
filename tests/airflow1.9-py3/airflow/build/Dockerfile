@@ -4,7 +4,5 @@ USER root
 
 RUN pip3 install prometheus_client
 
-# RUN mkdir -p /usr/local/airflow/logs && chown airflow -R /usr/local/airflow/logs
-# # RUN chown -R airflow /usr/local/airflow
-
-# USER airflow
+# Needed to write to mounted directory with proper permissions
+USER ${HOST_USER_ID}
