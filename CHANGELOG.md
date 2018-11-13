@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.4.1 - 2018-11-13
+
+- Fix [#24](https://github.com/epoch8/airflow-exporter/issues/24): Unsupported mime-type by @szyn
+
 ## 0.4 - 2018-10-15
 
 - Fix [#14](https://github.com/epoch8/airflow-exporter/issues/14): Airflow 1.10 compatibility by @jmcarp
