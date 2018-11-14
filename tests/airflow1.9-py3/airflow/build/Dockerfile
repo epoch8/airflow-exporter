@@ -4,5 +4,4 @@ USER root
 
 RUN pip3 install prometheus_client
 
-# Needed to write to mounted directory with proper permissions
-USER ${HOST_USER_ID}
+USER airflow
