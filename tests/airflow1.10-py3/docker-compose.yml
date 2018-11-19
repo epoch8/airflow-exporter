@@ -1,0 +1,33 @@
+version: '2'
+
+services:
+    
+    exporter_postgresql:
+        image: postgres:9.6.6
+        container_name: exporter_postgresql
+        restart: always
+        volumes:
+            - ./postgresql/data:/var/lib/postgresql/data
+            - ./postgresql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
+
+    exporter_airflow:
+        image: exporter_airflow_pg
+        build: ./airflow/build/
+        container_name: exporter_airflow
+        restart: always
+        environment:
+            - FERNET_KEY=EpK7iMi1OPb37q2LWC94CA8TJzx_WtJ4f_ODlkFatNc=
+            - LOAD_EX=n
+            - EXECUTOR=Local
+            - POSTGRES_HOST=exporter_postgresql
+            - POSTGRES_PORT=5432
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflowpass
+            - POSTGRES_DB=airflow
+        volumes:
+            - ../dags:/usr/local/airflow/dags
+            - ../..:/usr/local/airflow/plugins/airflow-exporter-0.000
+            - ./airflow/logs:/usr/local/airflow/logs
+        ports:
+            - "8080:8080"
+        command: webserver
