@@ -122,7 +122,7 @@ REGISTRY.register(MetricsCollector())
 class Metrics(BaseView):
     @expose('/')
     def index(self):
-        return Response(generate_latest(), mimetype='text')
+        return Response(generate_latest(), mimetype='text/plain')
 
 
 ADMIN_VIEW = Metrics(category="Prometheus exporter", name="metrics")
