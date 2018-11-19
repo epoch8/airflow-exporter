@@ -80,6 +80,10 @@ def get_dag_duration_info():
 
 class MetricsCollector(object):
     '''collection of metrics for prometheus'''
+
+    def describe(self):
+        return []
+
     def collect(self):
         '''collect metrics'''
 
