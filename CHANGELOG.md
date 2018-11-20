@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.4.2 - 2018-11-19
+
+- Fix [#13](https://github.com/epoch8/airflow-exporter/pull/20): Added test script and travis file by @hydrosquall
+- Fix [#13](https://github.com/epoch8/airflow-exporter/pull/27): fix run test in travis @cleverCat
+
 ## 0.4.1 - 2018-11-13
 
 - Fix [#24](https://github.com/epoch8/airflow-exporter/issues/24): Unsupported mime-type by @szyn
