@@ -10,7 +10,7 @@ Exposes dag and task based metrics from Airflow to a Prometheus compatible endpo
 
 Airflow: airflow1.8 - airflow1.10
 Python: python2, python3
-DataBase: postgresql,mysql
+DataBase: postgresql, mysql
 
 ## Install
 
