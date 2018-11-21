@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.4.4 - 2018-11-21
+
+- Fix [#29](https://github.com/epoch8/airflow-exporter/issues/29): fix run with mysql by @cleverCat
+
 ## 0.4.3 - 2018-11-21
 
 - Fix [#23](https://github.com/epoch8/airflow-exporter/issues/23): Airflow database CPU usage by @cleverCat
