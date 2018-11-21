@@ -1,10 +1,18 @@
 # Airflow prometheus exporter
 
+![travis build status](https://travis-ci.org/epoch8/airflow-exporter.svg?branch=master)
+
 Exposes dag and task based metrics from Airflow to a Prometheus compatible endpoint.
 
 ## Screenshots
 
 <img src="https://epoch8.github.io/media/2018/08/03/monitoring-airflow-with-prometheus/metrics_screenshot.png" height="400" width="600"/>
+
+## Dependencies
+
+Airflow: airflow1.8 - airflow1.10
+Python: python2, python3
+DataBase: postgresql, mysql
 
 ## Install
 
