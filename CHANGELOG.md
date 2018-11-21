@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.4.3 - 2018-11-21
+
+- Fix [#23](https://github.com/epoch8/airflow-exporter/issues/23): Airflow database CPU usage by @cleverCat
+
 ## 0.4.2 - 2018-11-19
 
 - Fix [#13](https://github.com/epoch8/airflow-exporter/pull/20): Added test script and travis file by @hydrosquall
