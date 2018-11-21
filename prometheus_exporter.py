@@ -64,10 +64,6 @@ def get_dag_duration_info():
     '''get duration of currently running DagRuns
     :return dag_info
     '''
-    #duration = DagRun.start_date
-    #duration = func.sum(func.now() - DagRun.start_date)
-    #duration = func.now()
-
     driver = Session.bind.driver
     durations = {
         'mysqldb': func.sum(func.timestampdiff(text('second'), func.now(), DagRun.start_date)),
