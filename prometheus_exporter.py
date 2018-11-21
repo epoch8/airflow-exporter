@@ -5,7 +5,26 @@ from flask import Response
 from flask_admin import BaseView, expose
 
 # Views for Flask App Builder
-from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
+appbuilder_views = []
+try:
+    from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
+    class RBACMetrics(FABBaseView):
+        route_base = "/metrics/"
+        @FABexpose('/')
+        def list(self):
+            return Response(generate_latest(), mimetype='text')
+
+
+    # Metrics View for Flask app builder used in airflow with rbac enabled
+    RBACmetricsView = {
+        "view": RBACMetrics(),
+        "name": "metrics",
+        "category": "Prometheus exporter"
+    }
+    appbuilder_views = [RBACmetricsView]
+
+except ImportError:
+    pass
 
 
 from airflow.plugins_manager import AirflowPlugin
@@ -141,20 +160,6 @@ class Metrics(BaseView):
 
 ADMIN_VIEW = Metrics(category="Prometheus exporter", name="metrics")
 
-class RBACMetrics(FABBaseView):
-    route_base = "/metrics/"
-    @FABexpose('/')
-    def list(self):
-        return Response(generate_latest(), mimetype='text')
-
-
-# Metrics View for Flask app builder used in airflow with rbac enabled
-RBACmetricsView = {
-    "view": RBACMetrics(),
-    "name": "metrics",
-    "category": "Prometheus exporter"
-}
-
 
 class AirflowPrometheusPlugins(AirflowPlugin):
     '''plugin for show metrics'''
@@ -166,5 +171,5 @@ class AirflowPrometheusPlugins(AirflowPlugin):
     admin_views = [ADMIN_VIEW]
     flask_blueprints = []
     menu_links = []
-    appbuilder_views = [RBACmetricsView]
+    appbuilder_views = appbuilder_views
     appbuilder_menu_items = []
