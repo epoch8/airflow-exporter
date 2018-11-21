@@ -1,5 +1,7 @@
 # Airflow prometheus exporter
 
+![travis build status](https://travis-ci.org/epoch8/airflow-exporter.svg?branch=master)
+
 Exposes dag and task based metrics from Airflow to a Prometheus compatible endpoint.
 
 ## Screenshots
