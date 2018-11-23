@@ -9,7 +9,7 @@ appbuilder_views = []
 try:
     from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
     class RBACMetrics(FABBaseView):
-        route_base = "/metrics/"
+        route_base = "/admin/metrics/"
         @FABexpose('/')
         def list(self):
             return Response(generate_latest(), mimetype='text')

@@ -5,7 +5,7 @@
 # Depends on Curl
 
 AIRFLOW_SLEEP_DURATION=90 # Number of seconds to wait for airflow to start
-METRICS_ENDPOINT="http://localhost:8080/metrics/"
+METRICS_ENDPOINT="http://localhost:8080/admin/metrics/"
 
 # Return nonzero status code if endpoint does not return 200
 CURL_FLAGS="--show-error --fail"
