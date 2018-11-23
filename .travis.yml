@@ -8,7 +8,6 @@ services:
 env:
   global:
     - DOCKER_COMPOSE_VERSION=1.9.0
-    - INTEGRATION_TEST_SCRIPT=test_metrics_up.sh
     
 before_install:
   - sudo rm /usr/local/bin/docker-compose
@@ -21,18 +20,24 @@ before_install:
 script:
   # Test Airflow 1.8 with Python 2
   - cd tests/airflow1.8-py2 && docker-compose build --no-cache && docker-compose up -d
-  - ${TRAVIS_BUILD_DIR}/tests/${INTEGRATION_TEST_SCRIPT}
+  - ${TRAVIS_BUILD_DIR}/tests/test_metrics_up.sh
   - docker-compose down
 
   # Test Airflow 1.9 with Python 3
   - mkdir ${TRAVIS_BUILD_DIR}/tests/airflow1.9-py3/airflow/logs
   - chmod -R 777 ${TRAVIS_BUILD_DIR}/tests/airflow1.9-py3/airflow/logs
   - cd ${TRAVIS_BUILD_DIR}/tests/airflow1.9-py3 && docker-compose build --no-cache && docker-compose up -d
-  - ${TRAVIS_BUILD_DIR}/tests/${INTEGRATION_TEST_SCRIPT}
+  - ${TRAVIS_BUILD_DIR}/tests/test_metrics_up.sh
   - docker-compose down
 
   # Test Airflow 1.10 with Python 3
   - mkdir ${TRAVIS_BUILD_DIR}/tests/airflow1.10-py3/airflow/logs
   - chmod -R 777 ${TRAVIS_BUILD_DIR}/tests/airflow1.10-py3/airflow/logs
   - cd ${TRAVIS_BUILD_DIR}/tests/airflow1.10-py3 && docker-compose build --no-cache && docker-compose up -d
-  - ${TRAVIS_BUILD_DIR}/tests/${INTEGRATION_TEST_SCRIPT}
+  - ${TRAVIS_BUILD_DIR}/tests/test_metrics_up.sh
+
+  # Test Airflow 1.10 with RBAC and Python 3
+  - mkdir ${TRAVIS_BUILD_DIR}/tests/airflow1.10-rbac-py3/airflow/logs
+  - chmod -R 777 ${TRAVIS_BUILD_DIR}/tests/airflow1.10-rbac-py3/airflow/logs
+  - cd ${TRAVIS_BUILD_DIR}/tests/airflow1.10-rbac-py3 && docker-compose build --no-cache && docker-compose up -d
+  - ${TRAVIS_BUILD_DIR}/tests/test_metrics_up.sh
