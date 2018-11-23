@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## 0.4.5 - 2018-11-21
+## 0.5 - 2018-11-23
 
 - Fix [#28](https://github.com/epoch8/airflow-exporter/issues/28): Add support to show prometheus metrics when rbac is enabled in airflow by @phani8996
 - Fix [#34](https://github.com/epoch8/airflow-exporter/issues/34): fix run 1.8 and 1.9 by @cleverCat
