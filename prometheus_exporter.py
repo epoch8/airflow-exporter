@@ -4,6 +4,29 @@ from sqlalchemy import text
 from flask import Response
 from flask_admin import BaseView, expose
 
+# Views for Flask App Builder
+appbuilder_views = []
+try:
+    from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
+    class RBACMetrics(FABBaseView):
+        route_base = "/admin/metrics/"
+        @FABexpose('/')
+        def list(self):
+            return Response(generate_latest(), mimetype='text')
+
+
+    # Metrics View for Flask app builder used in airflow with rbac enabled
+    RBACmetricsView = {
+        "view": RBACMetrics(),
+        "name": "metrics",
+        "category": "Prometheus exporter"
+    }
+    appbuilder_views = [RBACmetricsView]
+
+except ImportError:
+    pass
+
+
 from airflow.plugins_manager import AirflowPlugin
 from airflow.settings import Session
 from airflow.models import DagStat, TaskInstance, DagModel, DagRun
@@ -152,3 +175,5 @@ class AirflowPrometheusPlugins(AirflowPlugin):
     admin_views = [ADMIN_VIEW]
     flask_blueprints = []
     menu_links = []
+    appbuilder_views = appbuilder_views
+    appbuilder_menu_items = []
