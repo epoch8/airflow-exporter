@@ -89,6 +89,9 @@ def get_dag_duration_info():
     '''
     driver = Session.bind.driver
     durations = {
+        'pysqlite': func.sum(
+            (func.julianday(func.current_timestamp()) - func.julianday(DagRun.start_date)) * 86400.0
+        ),
         'mysqldb': func.sum(func.timestampdiff(text('second'), func.now(), DagRun.start_date)),
         'default': func.sum(func.now() - DagRun.start_date)
     }
@@ -146,7 +149,7 @@ class MetricsCollector(object):
         )
         driver = Session.bind.driver
         for dag in get_dag_duration_info():
-            if driver == 'mysqldb':
+            if driver == 'mysqldb' or driver == 'pysqlite':
                 dag_duration.add_metric([dag.dag_id, dag.run_id], dag.duration)
             else:
                 dag_duration.add_metric([dag.dag_id, dag.run_id], dag.duration.seconds)
