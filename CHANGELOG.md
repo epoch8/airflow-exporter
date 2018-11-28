@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.5.1 - 2018-11-28
+
+- Fix [#36](https://github.com/epoch8/airflow-exporter/issues/36): Exporter fails with Sqlite DB used in development environment by @ryan-carlson
+
 ## 0.5 - 2018-11-23
 
 - Fix [#28](https://github.com/epoch8/airflow-exporter/issues/28): Add support to show prometheus metrics when rbac is enabled in airflow by @phani8996
