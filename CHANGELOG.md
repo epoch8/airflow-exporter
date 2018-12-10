@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.5.2 - 2018-12-10
+
+- Fix for negative values with MySQL backend by @ebartels
+
 ## 0.5.1 - 2018-11-28
 
 - Fix [#36](https://github.com/epoch8/airflow-exporter/issues/36): Exporter fails with Sqlite DB used in development environment by @ryan-carlson
