@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## Development
+
+- Fix import error for dummy operator [#39](https://github.com/epoch8/airflow-exporter/pull/39) by @msumit
+
 ## 0.5.2 - 2018-12-10
 
 - Fix for negative values with MySQL backend by @ebartels
