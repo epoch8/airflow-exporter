@@ -1,9 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## Development
+## 0.5.3 - 2019-01-11
 
 - Fix import error for dummy operator [#39](https://github.com/epoch8/airflow-exporter/pull/39) by @msumit
+- Fix requirements.txt issue [#41](https://github.com/epoch8/airflow-exporter/pull/41) by @slash-cyberpunk
 
 ## 0.5.2 - 2018-12-10
 
