@@ -35,7 +35,7 @@ That's it. You're done.
 Metrics will be available at 
 
 ```
-http://<your_airflow_host_and_port>/admin/metrics
+http://<your_airflow_host_and_port>/admin/metrics/
 ```
 
 ### `airflow_task_status`
