@@ -30,6 +30,16 @@ git clone https://github.com/epoch8/airflow-exporter plugins/prometheus_exporter
 
 That's it. You're done.
 
+## Docker Install
+
+If you use airflow in docker you can simply modify your Dockerfile like this:
+
+```sh
+RUN cd ${AIRFLOW_HOME}/plugins && \
+    wget https://github.com/epoch8/airflow-exporter/archive/${AIRFLOW_EXPORTER_VERSION}.tar.gz -O airflow-exporter-${AIRFLOW_EXPORTER_VERSION}.tar.gz && \
+    tar zxf airflow-exporter-${AIRFLOW_EXPORTER_VERSION}.tar.gz
+```
+
 ## Metrics
 
 Metrics will be available at 
