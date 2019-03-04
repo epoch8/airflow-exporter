@@ -19,7 +19,7 @@ try:
     RBACmetricsView = {
         "view": RBACMetrics(),
         "name": "metrics",
-        "category": "Prometheus exporter"
+        "category": "Admin"
     }
     appbuilder_views = [RBACmetricsView]
 
