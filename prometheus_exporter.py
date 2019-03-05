@@ -19,7 +19,7 @@ try:
     RBACmetricsView = {
         "view": RBACMetrics(),
         "name": "metrics",
-        "category": "Prometheus exporter"
+        "category": "Admin"
     }
     appbuilder_views = [RBACmetricsView]
 
@@ -165,7 +165,7 @@ class Metrics(BaseView):
         return Response(generate_latest(), mimetype='text/plain')
 
 
-ADMIN_VIEW = Metrics(category="Prometheus exporter", name="metrics")
+ADMIN_VIEW = Metrics(category="Admin", name="Metrics")
 
 
 class AirflowPrometheusPlugins(AirflowPlugin):

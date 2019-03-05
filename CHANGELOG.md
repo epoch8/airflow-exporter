@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.5.4 - 2019-03-05
+
+- Move Metrics to Admin View
+
 ## 0.5.3 - 2019-01-11
 
 - Fix import error for dummy operator [#39](https://github.com/epoch8/airflow-exporter/pull/39) by @msumit
