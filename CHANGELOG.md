@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## To be released
+
+- Fix [#46](https://github.com/epoch8/airflow-exporter/issues/46) Airflow 1.10.3 compatiblity by @sockeye44
+
 ## 0.5.4 - 2019-03-05
 
 - Move Metrics to Admin View
