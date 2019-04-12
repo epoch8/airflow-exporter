@@ -8,9 +8,11 @@ Exposes dag and task based metrics from Airflow to a Prometheus compatible endpo
 
 <img src="https://epoch8.github.io/media/2018/08/03/monitoring-airflow-with-prometheus/metrics_screenshot.png" height="400" width="600"/>
 
-## Dependencies
+## Compatibility
 
-* Airflow: airflow1.8 - airflow1.10
+**Note: this version is compatible with Airflow 1.10.3+ only, see [#46](https://github.com/epoch8/airflow-exporter/issues/46) for details**
+
+* Airflow: airflow1.10.3+
 * Python: python2, python3
 * DataBase: postgresql, mysql
 
