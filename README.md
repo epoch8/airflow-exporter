@@ -18,29 +18,11 @@ Exposes dag and task based metrics from Airflow to a Prometheus compatible endpo
 
 ## Install
 
-Install project requirements:
-
 ```sh
-pip3 install prometheus_client
-```
-
-Switch to the root of your Airflow project.
-
-```sh
-git clone https://github.com/epoch8/airflow-exporter plugins/prometheus_exporter
+pip install https://github.com/epoch8/airflow-exporter/archive/airflow-1.10.3.tar.gz
 ```
 
 That's it. You're done.
-
-## Docker Install
-
-If you use airflow in docker you can simply modify your Dockerfile like this:
-
-```sh
-RUN cd ${AIRFLOW_HOME}/plugins && \
-    wget https://github.com/epoch8/airflow-exporter/archive/${AIRFLOW_EXPORTER_VERSION}.tar.gz -O airflow-exporter-${AIRFLOW_EXPORTER_VERSION}.tar.gz && \
-    tar zxf airflow-exporter-${AIRFLOW_EXPORTER_VERSION}.tar.gz
-```
 
 ## Metrics
 

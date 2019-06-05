@@ -27,7 +27,7 @@ services:
             - AIRFLOW__WEBSERVER__RBAC=true
         volumes:
             - ../dags:/usr/local/airflow/dags
-            - ../..:/usr/local/airflow/plugins/airflow-exporter-0.000
+            - ../../airflow_exporter:/usr/local/airflow/plugins/airflow-exporter-0.000
             - ./airflow/logs:/usr/local/airflow/logs
         ports:
             - "8080:8080"

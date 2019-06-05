@@ -43,3 +43,11 @@ script:
   - cd ${TRAVIS_BUILD_DIR}/tests/airflow1.10-rbac-py3 && docker-compose build --no-cache && docker-compose up -d
   - ${TRAVIS_BUILD_DIR}/tests/test_metrics_rbac_up.sh
   - docker-compose down
+
+# deploy:
+#   provider: pypi
+#   user: epoch8
+#   password: # TODO: Add epoch8's PyPI password. See https://docs.travis-ci.com/user/deployment/pypi
+#   distributions: sdist bdist_wheel
+#   on:
+#     tags: true
