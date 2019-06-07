@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  postgresql:
+    image: postgres:9.6-alpine
+    restart: always
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./tests/postgresql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
+  airflow:
+    image: airflow_exporter
+    build:
+      context: .
+    restart: always
+    environment:
+      - FERNET_KEY=EpK7iMi1OPb37q2LWC94CA8TJzx_WtJ4f_ODlkFatNc=
+      - LOAD_EX=n
+      - EXECUTOR=Local
+      - POSTGRES_HOST=postgresql
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflowpass
+      - POSTGRES_DB=airflow
+      - AIRFLOW__WEBSERVER__RBAC
+    volumes:
+      - ./airflow_exporter:/usr/local/airflow/.local/lib/python${PYTHON_VERSION:-3.6}/site-packages/airflow_exporter
+      - ./tests/dags:/usr/local/airflow/dags
+      - ./tests/logs:/usr/local/airflow/logs
+    ports:
+      - 127.0.0.1:8080:8080
+    depends_on:
+      - postgresql
+
+volumes:
+  postgres-data:
