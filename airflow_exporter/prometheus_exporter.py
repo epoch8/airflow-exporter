@@ -87,7 +87,7 @@ def get_dag_duration_info():
     '''get duration of currently running DagRuns
     :return dag_info
     '''
-    driver = Session.bind.driver
+    driver = Session.bind.driver # pylint: disable=no-member
     durations = {
         'pysqlite': func.sum(
             (func.julianday(func.current_timestamp()) - func.julianday(DagRun.start_date)) * 86400.0
@@ -147,7 +147,7 @@ class MetricsCollector(object):
             'Duration of currently running dag_runs in seconds',
             labels=['dag_id', 'run_id']
         )
-        driver = Session.bind.driver
+        driver = Session.bind.driver # pylint: disable=no-member
         for dag in get_dag_duration_info():
             if driver == 'mysqldb' or driver == 'pysqlite':
                 dag_duration.add_metric([dag.dag_id, dag.run_id], dag.duration)
