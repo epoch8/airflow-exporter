@@ -21,7 +21,7 @@ For compatibility with previous versions of Airflow use older version: [v0.5.4](
 ## Install
 
 ```sh
-pip install https://github.com/epoch8/airflow-exporter/archive/airflow-1.10.3.tar.gz
+pip install airflow-exporter
 ```
 
 That's it. You're done.
