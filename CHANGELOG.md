@@ -1,7 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## To be released
+## 1.0 - 2019-06-08
+
+Breaking compatibility with Airflow versions prior to 1.10.3
 
 - Fix [#46](https://github.com/epoch8/airflow-exporter/issues/46) Airflow 1.10.3 compatiblity by @sockeye44
 - Fix [#44](https://github.com/epoch8/airflow-exporter/issues/44) Deliver plugin as a python package by @maxbrunet
