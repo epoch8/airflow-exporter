@@ -29,7 +29,7 @@ except ImportError:
 
 from airflow.plugins_manager import AirflowPlugin
 from airflow.settings import Session
-from airflow.models import DagStat, TaskInstance, DagModel, DagRun
+from airflow.models import TaskInstance, DagModel, DagRun
 from airflow.utils.state import State
 
 # Importing base classes that we need to derive
@@ -60,12 +60,12 @@ def get_dag_state_info():
     '''
     with session_scope(Session) as session:
         dag_status_query = session.query(
-            DagStat.dag_id, DagStat.state, DagStat.count
-        ).group_by(DagStat.dag_id, DagStat.state).subquery()
+            DagRun.dag_id, DagRun.state, func.count(DagRun.state).label('count')
+        ).group_by(DagRun.dag_id, DagRun.state).subquery()
         return session.query(
-            DagStat.dag_id, DagStat.state, DagStat.count,
+            dag_status_query.c.dag_id, dag_status_query.c.state, dag_status_query.c.count,
             DagModel.owners
-        ).join(DagModel, DagModel.dag_id == DagStat.dag_id).all()
+        ).join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id).all()
 
 
 def get_task_state_info():
@@ -87,7 +87,7 @@ def get_dag_duration_info():
     '''get duration of currently running DagRuns
     :return dag_info
     '''
-    driver = Session.bind.driver
+    driver = Session.bind.driver # pylint: disable=no-member
     durations = {
         'pysqlite': func.sum(
             (func.julianday(func.current_timestamp()) - func.julianday(DagRun.start_date)) * 86400.0
@@ -147,7 +147,7 @@ class MetricsCollector(object):
             'Duration of currently running dag_runs in seconds',
             labels=['dag_id', 'run_id']
         )
-        driver = Session.bind.driver
+        driver = Session.bind.driver # pylint: disable=no-member
         for dag in get_dag_duration_info():
             if driver == 'mysqldb' or driver == 'pysqlite':
                 dag_duration.add_metric([dag.dag_id, dag.run_id], dag.duration)
