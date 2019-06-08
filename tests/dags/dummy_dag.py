@@ -11,11 +11,14 @@ default_args = {
     'retries': 100,
     'retry_delay': timedelta(seconds=30),
     'max_active_runs': 1,
-    'schedule_interval': timedelta(seconds=5),
 }
 
 
-dag = DAG('dummy_dag', default_args=default_args)
+dag = DAG(
+    'dummy_dag',
+    schedule_interval=timedelta(seconds=5),
+    default_args=default_args,
+)
 
 dummy1 = DummyOperator(
     task_id='dummy_task_1',
