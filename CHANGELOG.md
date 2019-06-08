@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## To be released
 
 - Fix [#46](https://github.com/epoch8/airflow-exporter/issues/46) Airflow 1.10.3 compatiblity by @sockeye44
+- Fix [#44](https://github.com/epoch8/airflow-exporter/issues/44) Deliver plugin as a python package by @maxbrunet
 
 ## 0.5.4 - 2019-03-05
 
