@@ -8,24 +8,20 @@ Exposes dag and task based metrics from Airflow to a Prometheus compatible endpo
 
 <img src="https://epoch8.github.io/media/2018/08/03/monitoring-airflow-with-prometheus/metrics_screenshot.png" height="400" width="600"/>
 
-## Dependencies
+## Compatibility
 
-* Airflow: airflow1.8 - airflow1.10
+**Note: this version is compatible with Airflow 1.10.3+ only, see [#46](https://github.com/epoch8/airflow-exporter/issues/46) for details**
+
+For compatibility with previous versions of Airflow use older version: [v0.5.4](https://github.com/epoch8/airflow-exporter/releases/tag/v0.5.4)
+
+* Airflow: airflow1.10.3+
 * Python: python2, python3
 * DataBase: postgresql, mysql
 
 ## Install
 
-Install project requirements:
-
 ```sh
-pip3 install prometheus_client
-```
-
-Switch to the root of your Airflow project.
-
-```sh
-git clone https://github.com/epoch8/airflow-exporter plugins/prometheus_exporter
+pip install airflow-exporter
 ```
 
 That's it. You're done.
@@ -35,7 +31,7 @@ That's it. You're done.
 Metrics will be available at 
 
 ```
-http://<your_airflow_host_and_port>/admin/metrics
+http://<your_airflow_host_and_port>/admin/metrics/
 ```
 
 ### `airflow_task_status`

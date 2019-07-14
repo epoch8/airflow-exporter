@@ -1,6 +1,30 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 1.0 - 2019-06-08
+
+Breaking compatibility with Airflow versions prior to 1.10.3
+
+- Fix [#46](https://github.com/epoch8/airflow-exporter/issues/46) Airflow 1.10.3 compatiblity by @sockeye44
+- Fix [#44](https://github.com/epoch8/airflow-exporter/issues/44) Deliver plugin as a python package by @maxbrunet
+
+## 0.5.4 - 2019-03-05
+
+- Move Metrics to Admin View
+
+## 0.5.3 - 2019-01-11
+
+- Fix import error for dummy operator [#39](https://github.com/epoch8/airflow-exporter/pull/39) by @msumit
+- Fix requirements.txt issue [#41](https://github.com/epoch8/airflow-exporter/pull/41) by @slash-cyberpunk
+
+## 0.5.2 - 2018-12-10
+
+- Fix for negative values with MySQL backend by @ebartels
+
+## 0.5.1 - 2018-11-28
+
+- Fix [#36](https://github.com/epoch8/airflow-exporter/issues/36): Exporter fails with Sqlite DB used in development environment by @ryan-carlson
+
 ## 0.5 - 2018-11-23
 
 - Fix [#28](https://github.com/epoch8/airflow-exporter/issues/28): Add support to show prometheus metrics when rbac is enabled in airflow by @phani8996
