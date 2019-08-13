@@ -33,7 +33,8 @@ setup(
     ],
     entry_points={
         "airflow.plugins": [
-            "AirflowPrometheus = airflow_exporter.prometheus_exporter:AirflowPrometheusPlugins"
+            #"AirflowPrometheus = airflow_exporter.prometheus_exporter:AirflowPrometheusPlugins"
+            "AirflowPrometheus = airflow_exporter:AirflowPrometheusPlugins"
         ]
     },
 )
