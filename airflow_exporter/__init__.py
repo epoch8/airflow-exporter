@@ -250,6 +250,9 @@ def authenticate_scrape(f):
             abort(503)
         if prometheus_exporter.config['auth_enabled'] == False:
             return f(*args, **kwargs)
+        from flask_login import current_user
+        if not current_user.is_anonymous and current_user.is_authenticated:
+            return f(*args, **kwargs)
         auth_header = None
         auth_headers = ['Authorization', 'X-Auth-Token', 'X-Token', 'x-token', 'access_token']
         for h in auth_headers:
