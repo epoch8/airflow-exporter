@@ -10,12 +10,8 @@ jobs:
 
     strategy:
       matrix:
-        include:
-          - airflow_version: 1.10.4
-            airflow_rbac: false
-          
-          - airflow_version: 1.10.4
-            airflow_rbac: true
+        airflow_version: ['1.10.4']
+        airflow_rbac: [true, false]
  
     steps:
     - uses: actions/checkout@v1
