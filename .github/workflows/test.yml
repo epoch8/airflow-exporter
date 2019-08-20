@@ -7,12 +7,22 @@ jobs:
   test:
  
     runs-on: ubuntu-latest
+
+    stategy:
+      matrix:
+        include:
+          - airflow_version: 1.10.4
+            airflow_rbac: false
+          
+          - airflow_version: 1.10.4
+            airflow_rbac: true
  
     steps:
     - uses: actions/checkout@v1
     - name: Run test
       env:
-        AIRFLOW_VERSION: 1.10.4
+        AIRFLOW_VERSION: ${{ matrix.airflow_version }}
+        AIRFLOW__WEBSERVER__RBAC: ${{ matrix.airflow_rbac }}
 
       run: |
         docker-compose up -d postgresql
