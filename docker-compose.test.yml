@@ -1,6 +1,11 @@
 version: '3'
 
 services:
+  airflow:
+    volumes:
+      - .:/tmp/airflow_exporter
+      - ./airflow-requirements.txt:/requirements.txt
+
   sut:
     image: test_airflow_exporter
     build:

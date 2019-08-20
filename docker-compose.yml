@@ -21,8 +21,6 @@ services:
       - POSTGRES_DB=airflow
       - AIRFLOW__WEBSERVER__RBAC
     volumes:
-      - .:/tmp/airflow_exporter
-      - ./airflow-requirements.txt:/requirements.txt
       - ./tests/dags:/usr/local/airflow/dags
     ports:
       - 127.0.0.1:8080:8080
