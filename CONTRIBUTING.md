@@ -17,5 +17,5 @@ docker-compose restart airflow
 You can run the tests suite with:
 
 ```shell
-docker-compose -f docker-compose.test.yml -p test_airflow-exporter up sut
+./run_test.sh
 ```
