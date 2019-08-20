@@ -1,4 +1,4 @@
-ARG AIRFLOW_VERSION=1.10.3
+ARG AIRFLOW_VERSION=1.10.4
 FROM puckel/docker-airflow:${AIRFLOW_VERSION}
 
 COPY ./tests/dags "${AIRFLOW_HOME}/dags"

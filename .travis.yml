@@ -7,12 +7,12 @@ services:
 
 matrix:
   include:
-    - name: Airflow 1.10.3
+    - name: Airflow 1.10.4
       env:
-        - AIRFLOW_VERSION=1.10.3
-    - name: Airflow 1.10.3 with RBAC
+        - AIRFLOW_VERSION=1.10.4
+    - name: Airflow 1.10.4 with RBAC
       env:
-        - AIRFLOW_VERSION=1.10.3
+        - AIRFLOW_VERSION=1.10.4
         - AIRFLOW__WEBSERVER__RBAC=true
 
 script:
