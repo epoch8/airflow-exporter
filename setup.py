@@ -10,7 +10,7 @@ with open(readme_file) as f:
 
 setup(
     name="airflow-exporter",
-    version="1.0",
+    version="1.1.0",
     description="Airflow plugin to export dag and task based metrics to Prometheus.",
     long_description=readme,
     long_description_content_type="text/markdown",
