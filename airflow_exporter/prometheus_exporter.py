@@ -89,22 +89,18 @@ def get_dag_duration_info():
     '''
     driver = Session.bind.driver # pylint: disable=no-member
     durations = {
-        'pysqlite': func.sum(
-            (func.julianday(func.current_timestamp()) - func.julianday(DagRun.start_date)) * 86400.0
-        ),
-        'mysqldb': func.sum(func.timestampdiff(text('second'), DagRun.start_date, func.now())),
-        'default': func.sum(func.now() - DagRun.start_date)
+        'pysqlite': func.julianday(func.current_timestamp() - func.julianday(DagRun.start_date)) * 86400.0,
+        'mysqldb':  func.timestampdiff(text('second'), DagRun.start_date, func.now()),
+        'default':  func.now() - DagRun.start_date
     }
     duration = durations.get(driver, durations['default'])
 
     with session_scope(Session) as session:
         return session.query(
             DagRun.dag_id,
-            DagRun.run_id,
-            duration.label('duration')
+            func.max(duration).label('duration')
         ).group_by(
-            DagRun.dag_id,
-            DagRun.run_id
+            DagRun.dag_id
         ).filter(
             DagRun.state == State.RUNNING
         ).all()
@@ -144,15 +140,15 @@ class MetricsCollector(object):
         # DagRun metrics
         dag_duration = GaugeMetricFamily(
             'airflow_dag_run_duration',
-            'Duration of currently running dag_runs in seconds',
-            labels=['dag_id', 'run_id']
+            'Maximum duration of currently running dag_runs for each DAG in seconds',
+            labels=['dag_id']
         )
         driver = Session.bind.driver # pylint: disable=no-member
         for dag in get_dag_duration_info():
             if driver == 'mysqldb' or driver == 'pysqlite':
-                dag_duration.add_metric([dag.dag_id, dag.run_id], dag.duration)
+                dag_duration.add_metric([dag.dag_id], dag.duration)
             else:
-                dag_duration.add_metric([dag.dag_id, dag.run_id], dag.duration.seconds)
+                dag_duration.add_metric([dag.dag_id], dag.duration.seconds)
         yield dag_duration
 
 
