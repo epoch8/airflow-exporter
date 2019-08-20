@@ -60,9 +60,9 @@ Value: number of dags in specific status.
 Labels:
 
 * `dag_id`: unique identifier for a given DAG
-* `run_id`: unique identifier created each time a DAG is run
 
-Value: duration in seconds that a DAG Run has been running for. This metric is not available for DAGs that have already completed.
+Value: duration in seconds of the longest DAG Run for given DAG. This metric 
+is not available for DAGs that have already completed.
 
 ## License
 
