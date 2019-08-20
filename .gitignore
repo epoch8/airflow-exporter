@@ -8,3 +8,6 @@
 .vscode/
 
 tests/logs
+dist/
+build/
+*.egg-info
