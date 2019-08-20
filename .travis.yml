@@ -16,9 +16,9 @@ matrix:
         - AIRFLOW__WEBSERVER__RBAC=true
 
 script:
-  - docker-compose -f docker-compose.test.yml build --build-arg "AIRFLOW_VERSION=${AIRFLOW_VERSION}"
+  - docker-compose -f docker-compose.yml build --build-arg "AIRFLOW_VERSION=${AIRFLOW_VERSION}"
   # Start the tests container (sut) and attach airflow stdout as well
-  - docker-compose -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from=sut sut airflow
+  - docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from=sut sut airflow
 
 # deploy:
 #   provider: pypi
