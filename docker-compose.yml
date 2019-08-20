@@ -24,7 +24,6 @@ services:
       - .:/tmp/airflow_exporter
       - ./airflow-requirements.txt:/requirements.txt
       - ./tests/dags:/usr/local/airflow/dags
-      - ./tests/logs:/usr/local/airflow/logs
     ports:
       - 127.0.0.1:8080:8080
     depends_on:
