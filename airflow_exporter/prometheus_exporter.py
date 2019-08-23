@@ -29,7 +29,7 @@ except ImportError:
 
 from airflow.plugins_manager import AirflowPlugin
 from airflow.settings import Session
-from airflow.models import TaskInstance, DagModel, DagRun
+from airflow.models import TaskInstance, DagModel, DagRun, DagBag
 from airflow.utils.state import State
 
 # Importing base classes that we need to derive
@@ -112,44 +112,66 @@ class MetricsCollector(object):
     def describe(self):
         return []
 
+    def get_labels(self, dag_id):
+        # reuse airflow webserver dagbag
+        from airflow.www.views import dagbag
+
+        dag = dagbag.get_dag(dag_id)
+
+        if dag is None:
+            return [], []
+        
+        labels = dag.params.get('labels')
+
+        if labels is None:
+            return [], []
+        
+        return list(labels.keys()), list(labels.values())
+
     def collect(self):
         '''collect metrics'''
 
         # Task metrics
         task_info = get_task_state_info()
-        t_state = GaugeMetricFamily(
-            'airflow_task_status',
-            'Shows the number of task starts with this status',
-            labels=['dag_id', 'task_id', 'owner', 'status']
-        )
         for task in task_info:
-            t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state or 'none'], task.value)
-        yield t_state
+            k, v = self.get_labels(task.dag_id)
+
+            t_state = GaugeMetricFamily(
+                'airflow_task_status',
+                'Shows the number of task starts with this status',
+                labels=['dag_id', 'task_id', 'owner', 'status'] + k
+            )
+            t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state or 'none'] + v, task.value)
+            yield t_state
 
         # Dag Metrics
         dag_info = get_dag_state_info()
-        d_state = GaugeMetricFamily(
-            'airflow_dag_status',
-            'Shows the number of dag starts with this status',
-            labels=['dag_id', 'owner', 'status']
-        )
         for dag in dag_info:
-            d_state.add_metric([dag.dag_id, dag.owners, dag.state], dag.count)
-        yield d_state
+            k, v = self.get_labels(dag.dag_id)
+
+            d_state = GaugeMetricFamily(
+                'airflow_dag_status',
+                'Shows the number of dag starts with this status',
+                labels=['dag_id', 'owner', 'status'] + k
+            )
+            d_state.add_metric([dag.dag_id, dag.owners, dag.state] + v, dag.count)
+            yield d_state
 
         # DagRun metrics
-        dag_duration = GaugeMetricFamily(
-            'airflow_dag_run_duration',
-            'Maximum duration of currently running dag_runs for each DAG in seconds',
-            labels=['dag_id']
-        )
         driver = Session.bind.driver # pylint: disable=no-member
         for dag in get_dag_duration_info():
+            k, v = self.get_labels(dag.dag_id)
+
+            dag_duration = GaugeMetricFamily(
+                'airflow_dag_run_duration',
+                'Maximum duration of currently running dag_runs for each DAG in seconds',
+                labels=['dag_id'] + k
+            )
             if driver == 'mysqldb' or driver == 'pysqlite':
-                dag_duration.add_metric([dag.dag_id], dag.duration)
+                dag_duration.add_metric([dag.dag_id] + v, dag.duration)
             else:
-                dag_duration.add_metric([dag.dag_id], dag.duration.seconds)
-        yield dag_duration
+                dag_duration.add_metric([dag.dag_id] + v, dag.duration.seconds)
+            yield dag_duration
 
 
 REGISTRY.register(MetricsCollector())

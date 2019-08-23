@@ -20,6 +20,13 @@ dag = DAG(
     schedule_interval=timedelta(hours=5),
     default_args=default_args,
     catchup=False,
+    params={
+        'labels': {
+            'env': 'test',
+            'label1': 'value1',
+            'label2': 'value2'
+        }
+    }
 )
 
 dummy1 = DummyOperator(
