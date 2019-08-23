@@ -5,6 +5,7 @@ from flask import Response
 from flask_admin import BaseView, expose
 
 from airflow.plugins_manager import AirflowPlugin
+from airflow import settings
 from airflow.settings import Session
 from airflow.models import TaskInstance, DagModel, DagRun, DagBag
 from airflow.utils.state import State
@@ -85,12 +86,10 @@ def get_dag_duration_info():
 
 def get_dag_labels(dag_id):
     # reuse airflow webserver dagbag
-    try:
-        # ugly hack to be compatible with old and RBAC versions
-        # when RBAC is activated this is raising AttributeError: 'NoneType' object has no attribute 'login_required'
-        from airflow.www.views import dagbag
-    except:
+    if settings.RBAC:
         from airflow.www_rbac.views import dagbag
+    else:
+        from airflow.www.views import dagbag
 
     dag = dagbag.get_dag(dag_id)
 
@@ -159,19 +158,7 @@ class MetricsCollector(object):
 
 REGISTRY.register(MetricsCollector())
 
-
-class Metrics(BaseView):
-    @expose('/')
-    def index(self):
-        return Response(generate_latest(), mimetype='text/plain')
-
-
-www_views = [Metrics(category="Admin", name="Metrics")]
-
-
-# Views for Flask App Builder
-www_rbac_views = []
-try:
+if settings.RBAC:
     from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
     class RBACMetrics(FABBaseView):
         route_base = "/admin/metrics/"
@@ -186,10 +173,18 @@ try:
         "name": "metrics",
         "category": "Admin"
     }
+
+    www_views = []
     www_rbac_views = [RBACmetricsView]
 
-except ImportError:
-    pass
+else:
+    class Metrics(BaseView):
+        @expose('/')
+        def index(self):
+            return Response(generate_latest(), mimetype='text/plain')
+
+    www_views = [Metrics(category="Admin", name="Metrics")]
+    www_rbac_views = []
 
 
 class AirflowPrometheusPlugins(AirflowPlugin):
