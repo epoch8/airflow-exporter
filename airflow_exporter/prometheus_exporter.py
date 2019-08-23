@@ -4,29 +4,6 @@ from sqlalchemy import text
 from flask import Response
 from flask_admin import BaseView, expose
 
-# Views for Flask App Builder
-appbuilder_views = []
-try:
-    from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
-    class RBACMetrics(FABBaseView):
-        route_base = "/admin/metrics/"
-        @FABexpose('/')
-        def list(self):
-            return Response(generate_latest(), mimetype='text')
-
-
-    # Metrics View for Flask app builder used in airflow with rbac enabled
-    RBACmetricsView = {
-        "view": RBACMetrics(),
-        "name": "metrics",
-        "category": "Admin"
-    }
-    appbuilder_views = [RBACmetricsView]
-
-except ImportError:
-    pass
-
-
 from airflow.plugins_manager import AirflowPlugin
 from airflow.settings import Session
 from airflow.models import TaskInstance, DagModel, DagRun, DagBag
@@ -106,27 +83,33 @@ def get_dag_duration_info():
         ).all()
 
 
+def get_dag_labels(dag_id):
+    # reuse airflow webserver dagbag
+    try:
+        # ugly hack to be compatible with old and RBAC versions
+        # when RBAC is activated this is raising AttributeError: 'NoneType' object has no attribute 'login_required'
+        from airflow.www.views import dagbag
+    except:
+        from airflow.www_rbac.views import dagbag
+
+    dag = dagbag.get_dag(dag_id)
+
+    if dag is None:
+        return [], []
+    
+    labels = dag.params.get('labels')
+
+    if labels is None:
+        return [], []
+    
+    return list(labels.keys()), list(labels.values())
+
+
 class MetricsCollector(object):
     '''collection of metrics for prometheus'''
 
     def describe(self):
         return []
-
-    def get_labels(self, dag_id):
-        # reuse airflow webserver dagbag
-        from airflow.www.views import dagbag
-
-        dag = dagbag.get_dag(dag_id)
-
-        if dag is None:
-            return [], []
-        
-        labels = dag.params.get('labels')
-
-        if labels is None:
-            return [], []
-        
-        return list(labels.keys()), list(labels.values())
 
     def collect(self):
         '''collect metrics'''
@@ -134,7 +117,7 @@ class MetricsCollector(object):
         # Task metrics
         task_info = get_task_state_info()
         for task in task_info:
-            k, v = self.get_labels(task.dag_id)
+            k, v = get_dag_labels(task.dag_id)
 
             t_state = GaugeMetricFamily(
                 'airflow_task_status',
@@ -147,7 +130,7 @@ class MetricsCollector(object):
         # Dag Metrics
         dag_info = get_dag_state_info()
         for dag in dag_info:
-            k, v = self.get_labels(dag.dag_id)
+            k, v = get_dag_labels(dag.dag_id)
 
             d_state = GaugeMetricFamily(
                 'airflow_dag_status',
@@ -160,7 +143,7 @@ class MetricsCollector(object):
         # DagRun metrics
         driver = Session.bind.driver # pylint: disable=no-member
         for dag in get_dag_duration_info():
-            k, v = self.get_labels(dag.dag_id)
+            k, v = get_dag_labels(dag.dag_id)
 
             dag_duration = GaugeMetricFamily(
                 'airflow_dag_run_duration',
@@ -183,7 +166,30 @@ class Metrics(BaseView):
         return Response(generate_latest(), mimetype='text/plain')
 
 
-ADMIN_VIEW = Metrics(category="Admin", name="Metrics")
+www_views = [Metrics(category="Admin", name="Metrics")]
+
+
+# Views for Flask App Builder
+www_rbac_views = []
+try:
+    from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
+    class RBACMetrics(FABBaseView):
+        route_base = "/admin/metrics/"
+        @FABexpose('/')
+        def list(self):
+            return Response(generate_latest(), mimetype='text')
+
+
+    # Metrics View for Flask app builder used in airflow with rbac enabled
+    RBACmetricsView = {
+        "view": RBACMetrics(),
+        "name": "metrics",
+        "category": "Admin"
+    }
+    www_rbac_views = [RBACmetricsView]
+
+except ImportError:
+    pass
 
 
 class AirflowPrometheusPlugins(AirflowPlugin):
@@ -193,8 +199,8 @@ class AirflowPrometheusPlugins(AirflowPlugin):
     hooks = []
     executors = []
     macros = []
-    admin_views = [ADMIN_VIEW]
+    admin_views = www_views
     flask_blueprints = []
     menu_links = []
-    appbuilder_views = appbuilder_views
+    appbuilder_views = www_rbac_views
     appbuilder_menu_items = []
