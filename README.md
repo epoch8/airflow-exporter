@@ -1,7 +1,5 @@
 # Airflow prometheus exporter
 
-![travis build status](https://travis-ci.org/epoch8/airflow-exporter.svg?branch=master)
-
 Exposes dag and task based metrics from Airflow to a Prometheus compatible endpoint.
 
 ## Screenshots
@@ -30,7 +28,7 @@ That's it. You're done.
 
 It is possible to add extra labels to DAG-related metrics by providing `labels` dict to DAG `params`.
 
-Example (label `env` with value `test` will be added to all metrics related to `dummy_dag`):
+### Example
 
 ```
 dag = DAG(
@@ -45,6 +43,10 @@ dag = DAG(
     }
 )
 ```
+
+Label `env` with value `test` will be added to all metrics related to `dummy_dag`:
+
+`airflow_dag_status{dag_id="dummy_dag",env="test",owner="owner",status="running"} 12.0`
 
 ## Metrics
 
