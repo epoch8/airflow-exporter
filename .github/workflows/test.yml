@@ -24,6 +24,7 @@ jobs:
         docker-compose up -d postgresql
         docker-compose run airflow /entrypoint.sh airflow initdb
         docker-compose run airflow /entrypoint.sh airflow unpause dummy_dag
+        docker-compose run airflow /entrypoint.sh airflow unpause slow_dag
         docker-compose run airflow /entrypoint.sh airflow trigger_dag dummy_dag
 
         # Start the tests container (sut) and attach airflow stdout as well
