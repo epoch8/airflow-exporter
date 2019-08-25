@@ -100,6 +100,8 @@ class MetricsCollector(object):
         '''collect metrics'''
 
         # Task metrics
+        # Each *MetricFamily generates two lines of comments in /metrics, try to minimize noise 
+        # by creating new group for each dag
         task_info = get_task_state_info()
         for dag_id, tasks in itertools.groupby(task_info, lambda x: x.dag_id):
             k, v = get_dag_labels(dag_id)
