@@ -16,49 +16,36 @@ from prometheus_client.core import GaugeMetricFamily
 
 from contextlib import contextmanager
 
-
-@contextmanager
-def session_scope(session):
-    """
-    Provide a transactional scope around a series of operations.
-    """
-    try:
-        yield session
-        session.commit()
-    except:
-        session.rollback()
-        raise
-    finally:
-        session.close()
+import itertools
 
 
 def get_dag_state_info():
     '''get dag info
     :return dag_info
     '''
-    with session_scope(Session) as session:
-        dag_status_query = session.query(
-            DagRun.dag_id, DagRun.state, func.count(DagRun.state).label('count')
-        ).group_by(DagRun.dag_id, DagRun.state).subquery()
-        return session.query(
-            dag_status_query.c.dag_id, dag_status_query.c.state, dag_status_query.c.count,
-            DagModel.owners
-        ).join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id).all()
+    dag_status_query = Session.query(
+        DagRun.dag_id, DagRun.state, func.count(DagRun.state).label('count')
+    ).group_by(DagRun.dag_id, DagRun.state).subquery()
+
+    return Session.query(
+        dag_status_query.c.dag_id, dag_status_query.c.state, dag_status_query.c.count,
+        DagModel.owners
+    ).join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id).all()
 
 
 def get_task_state_info():
     '''get task info
     :return task_info
     '''
-    with session_scope(Session) as session:
-        task_status_query = session.query(
-            TaskInstance.dag_id, TaskInstance.task_id,
-            TaskInstance.state, func.count(TaskInstance.dag_id).label('value')
-        ).group_by(TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state).subquery()
-        return session.query(
-            task_status_query.c.dag_id, task_status_query.c.task_id,
-            task_status_query.c.state, task_status_query.c.value, DagModel.owners
-        ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).all()
+    task_status_query = Session.query(
+        TaskInstance.dag_id, TaskInstance.task_id,
+        TaskInstance.state, func.count(TaskInstance.dag_id).label('value')
+    ).group_by(TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state).subquery()
+
+    return Session.query(
+        task_status_query.c.dag_id, task_status_query.c.task_id,
+        task_status_query.c.state, task_status_query.c.value, DagModel.owners
+    ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).order_by(task_status_query.c.dag_id).all()
 
 
 def get_dag_duration_info():
@@ -73,15 +60,14 @@ def get_dag_duration_info():
     }
     duration = durations.get(driver, durations['default'])
 
-    with session_scope(Session) as session:
-        return session.query(
-            DagRun.dag_id,
-            func.max(duration).label('duration')
-        ).group_by(
-            DagRun.dag_id
-        ).filter(
-            DagRun.state == State.RUNNING
-        ).all()
+    return Session.query(
+        DagRun.dag_id,
+        func.max(duration).label('duration')
+    ).group_by(
+        DagRun.dag_id
+    ).filter(
+        DagRun.state == State.RUNNING
+    ).all()
 
 
 def get_dag_labels(dag_id):
@@ -115,15 +101,17 @@ class MetricsCollector(object):
 
         # Task metrics
         task_info = get_task_state_info()
-        for task in task_info:
-            k, v = get_dag_labels(task.dag_id)
+        for dag_id, tasks in itertools.groupby(task_info, lambda x: x.dag_id):
+            k, v = get_dag_labels(dag_id)
 
             t_state = GaugeMetricFamily(
                 'airflow_task_status',
                 'Shows the number of task starts with this status',
                 labels=['dag_id', 'task_id', 'owner', 'status'] + k
             )
-            t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state or 'none'] + v, task.value)
+            for task in tasks:
+                t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state or 'none'] + v, task.value)
+            
             yield t_state
 
         # Dag Metrics
