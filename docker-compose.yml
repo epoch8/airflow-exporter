@@ -3,13 +3,11 @@ version: '3'
 services:
   postgresql:
     image: postgres:9.6-alpine
-    restart: always
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./tests/postgresql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
   airflow:
     image: puckel/docker-airflow:${AIRFLOW_VERSION:-1.10.4}
-    restart: always
     environment:
       - FERNET_KEY=EpK7iMi1OPb37q2LWC94CA8TJzx_WtJ4f_ODlkFatNc=
       - LOAD_EX=n
