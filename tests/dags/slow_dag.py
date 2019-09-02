@@ -16,15 +16,13 @@ default_args = {
 
 
 dag = DAG(
-    'dummy_dag',
+    'slow_dag',
     schedule_interval=timedelta(hours=5),
     default_args=default_args,
     catchup=False,
     params={
         'labels': {
-            'env': 'test',
-            'label1': 'value1',
-            'label2': 'value2'
+            'kind': 'slow'
         }
     }
 )
@@ -34,9 +32,10 @@ dummy1 = DummyOperator(
     dag=dag
 )
 
-dummy2 = DummyOperator(
+dummy2 = BashOperator(
     task_id='dummy_task_2',
-    dag=dag
+    dag=dag,
+    bash_command='sleep 60'
 )
 
 dummy1 >> dummy2

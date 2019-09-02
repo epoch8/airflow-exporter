@@ -28,6 +28,30 @@ pip install airflow-exporter
 
 That's it. You're done.
 
+## Exporting extra labels to Prometheus
+
+It is possible to add extra labels to DAG-related metrics by providing `labels` dict to DAG `params`.
+
+### Example
+
+```
+dag = DAG(
+    'dummy_dag',
+    schedule_interval=timedelta(hours=5),
+    default_args=default_args,
+    catchup=False,
+    params={
+        'labels': {
+            'env': 'test'
+        }
+    }
+)
+```
+
+Label `env` with value `test` will be added to all metrics related to `dummy_dag`:
+
+`airflow_dag_status{dag_id="dummy_dag",env="test",owner="owner",status="running"} 12.0`
+
 ## Metrics
 
 Metrics will be available at 

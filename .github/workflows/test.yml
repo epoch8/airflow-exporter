@@ -15,7 +15,7 @@ jobs:
  
     steps:
     - uses: actions/checkout@v1
-    - name: Run test
+    - name: Setup
       env:
         AIRFLOW_VERSION: ${{ matrix.airflow_version }}
         AIRFLOW__WEBSERVER__RBAC: ${{ matrix.airflow_rbac }}
@@ -24,7 +24,14 @@ jobs:
         docker-compose up -d postgresql
         docker-compose run airflow /entrypoint.sh airflow initdb
         docker-compose run airflow /entrypoint.sh airflow unpause dummy_dag
+        docker-compose run airflow /entrypoint.sh airflow unpause slow_dag
         docker-compose run airflow /entrypoint.sh airflow trigger_dag dummy_dag
 
+    - name: Wait for Airflow and query metrics
+      env:
+        AIRFLOW_VERSION: ${{ matrix.airflow_version }}
+        AIRFLOW__WEBSERVER__RBAC: ${{ matrix.airflow_rbac }}
+
+      run: |
         # Start the tests container (sut) and attach airflow stdout as well
         docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from=sut sut airflow
