@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 1.2.0
+
+- Add custom labels to DAG-related metrics
+
 ## 1.1.0
 
 - Fix [#59](https://github.com/epoch8/airflow-exporter/issues/59) Limit cardinality of `airflow_dag_run_duration`
