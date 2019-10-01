@@ -12,11 +12,12 @@ from airflow.utils.state import State
 
 # Importing base classes that we need to derive
 from prometheus_client import generate_latest, REGISTRY
-from prometheus_client.core import GaugeMetricFamily
+from prometheus_client.core import GaugeMetricFamily,Gauge
 
 from contextlib import contextmanager
 
 import itertools
+import time
 
 
 def get_dag_state_info():
@@ -121,11 +122,18 @@ class MetricsCollector(object):
         for dag in dag_info:
             k, v = get_dag_labels(dag.dag_id)
 
+            d_last_state_time = GaugeMetricFamily(
+                'airflow_dag_last_status_time',
+                'Shows the dag last status time',
+                labels=['dag_id', 'owner', 'status'] + k
+            )
             d_state = GaugeMetricFamily(
                 'airflow_dag_status',
                 'Shows the number of dag starts with this status',
                 labels=['dag_id', 'owner', 'status'] + k
             )
+            d_last_state_time.add_metric([dag.dag_id, dag.owners, dag.state] + v, time.time())
+            yield d_last_state_time
             d_state.add_metric([dag.dag_id, dag.owners, dag.state] + v, dag.count)
             yield d_state
 
