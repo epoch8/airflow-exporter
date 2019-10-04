@@ -17,19 +17,17 @@ from prometheus_client.core import GaugeMetricFamily,Gauge
 from contextlib import contextmanager
 
 import itertools
-import time
-
 
 def get_dag_state_info():
     '''get dag info
     :return dag_info
     '''
     dag_status_query = Session.query(
-        DagRun.dag_id, DagRun.state, func.count(DagRun.state).label('count')
+        DagRun.dag_id, DagRun.state, func.max(DagRun.execution_date).label('execution_date'), func.count(DagRun.state).label('count')
     ).group_by(DagRun.dag_id, DagRun.state).subquery()
 
     return Session.query(
-        dag_status_query.c.dag_id, dag_status_query.c.state, dag_status_query.c.count,
+        dag_status_query.c.dag_id, dag_status_query.c.state, dag_status_query.c.execution_date, dag_status_query.c.count,
         DagModel.owners
     ).join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id).all()
 
@@ -132,7 +130,7 @@ class MetricsCollector(object):
                 'Shows the number of dag starts with this status',
                 labels=['dag_id', 'owner', 'status'] + k
             )
-            d_last_state_time.add_metric([dag.dag_id, dag.owners, dag.state] + v, time.time())
+            d_last_state_time.add_metric([dag.dag_id, dag.owners, dag.state] + v, str(dag.execution_date.timestamp()))
             yield d_last_state_time
             d_state.add_metric([dag.dag_id, dag.owners, dag.state] + v, dag.count)
             yield d_state
