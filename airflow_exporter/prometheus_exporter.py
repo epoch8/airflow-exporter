@@ -52,11 +52,11 @@ def get_dag_duration_info():
     '''get duration of currently running DagRuns
     :return dag_info
     '''
-    driver = Session.bind.driver # pylint: disable=no-member
+    driver = Session.bind.driver  # pylint: disable=no-member
     durations = {
         'pysqlite': func.julianday(func.current_timestamp() - func.julianday(DagRun.start_date)) * 86400.0,
-        'mysqldb':  func.timestampdiff(text('second'), DagRun.start_date, func.now()),
-        'default':  func.now() - DagRun.start_date
+        'mysqldb': func.timestampdiff(text('second'), DagRun.start_date, func.now()),
+        'default': func.now() - DagRun.start_date
     }
     duration = durations.get(driver, durations['default'])
 
@@ -81,13 +81,30 @@ def get_dag_labels(dag_id):
 
     if dag is None:
         return [], []
-    
+
     labels = dag.params.get('labels')
 
     if labels is None:
         return [], []
-    
+
     return list(labels.keys()), list(labels.values())
+
+
+def get_scheduler_health_info():
+    from airflow import jobs
+    from airflow.settings import Session
+    import logging
+    session = Session()
+    scheduler_status = 0
+    try:
+        scheduler_job = session.query(jobs.SchedulerJob).order_by(jobs.SchedulerJob.latest_heartbeat.desc()).limit(1)\
+            .first()
+        if scheduler_job:
+            if scheduler_job.is_alive():
+                scheduler_status = 1
+    except Exception as ex:
+        logging.exception("Something wrong with scheduler")
+    return scheduler_status
 
 
 class MetricsCollector(object):
@@ -100,7 +117,7 @@ class MetricsCollector(object):
         '''collect metrics'''
 
         # Task metrics
-        # Each *MetricFamily generates two lines of comments in /metrics, try to minimize noise 
+        # Each *MetricFamily generates two lines of comments in /metrics, try to minimize noise
         # by creating new group for each dag
         task_info = get_task_state_info()
         for dag_id, tasks in itertools.groupby(task_info, lambda x: x.dag_id):
@@ -113,7 +130,7 @@ class MetricsCollector(object):
             )
             for task in tasks:
                 t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state or 'none'] + v, task.value)
-            
+
             yield t_state
 
         # Dag Metrics
@@ -130,7 +147,7 @@ class MetricsCollector(object):
             yield d_state
 
         # DagRun metrics
-        driver = Session.bind.driver # pylint: disable=no-member
+        driver = Session.bind.driver  # pylint: disable=no-member
         for dag in get_dag_duration_info():
             k, v = get_dag_labels(dag.dag_id)
 
@@ -145,13 +162,26 @@ class MetricsCollector(object):
                 dag_duration.add_metric([dag.dag_id] + v, dag.duration.seconds)
             yield dag_duration
 
+        # scheduler health info
+        scheduler_health = get_scheduler_health_info()
+        health_info = GaugeMetricFamily(
+            'airflow_scheduler_health',
+            'Airflow Scheduler Health',
+            labels=[]
+        )
+        health_info.add_metric([], scheduler_health)
+        yield health_info
+
 
 REGISTRY.register(MetricsCollector())
 
 if settings.RBAC:
     from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
+
+
     class RBACMetrics(FABBaseView):
         route_base = "/admin/metrics/"
+
         @FABexpose('/')
         def list(self):
             return Response(generate_latest(), mimetype='text')
@@ -172,6 +202,7 @@ else:
         @expose('/')
         def index(self):
             return Response(generate_latest(), mimetype='text/plain')
+
 
     www_views = [Metrics(category="Admin", name="Metrics")]
     www_rbac_views = []
