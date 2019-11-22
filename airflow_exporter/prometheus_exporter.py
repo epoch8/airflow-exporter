@@ -119,7 +119,7 @@ class MetricsCollector(object):
         # Dag Metrics
         dag_info = get_dag_state_info()
         for dag_id, dags in itertools.groupby(dag_info, lambda x: x.dag_id):
-            k, v = get_dag_labels(dag.dag_id)
+            k, v = get_dag_labels(dag_id)
 
             d_state = GaugeMetricFamily(
                 'airflow_dag_status',
