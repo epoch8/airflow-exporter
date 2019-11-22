@@ -118,7 +118,7 @@ class MetricsCollector(object):
 
         # Dag Metrics
         dag_info = get_dag_state_info()
-        for dag in dag_info:
+        for dag_id, dags in itertools.groupby(dag_info, lambda x: x.dag_id):
             k, v = get_dag_labels(dag.dag_id)
 
             d_state = GaugeMetricFamily(
@@ -126,7 +126,9 @@ class MetricsCollector(object):
                 'Shows the number of dag starts with this status',
                 labels=['dag_id', 'owner', 'status'] + k
             )
-            d_state.add_metric([dag.dag_id, dag.owners, dag.state] + v, dag.count)
+			for dag in dags:
+	            d_state.add_metric([dag.dag_id, dag.owners, dag.state] + v, dag.count)
+
             yield d_state
 
         # DagRun metrics
