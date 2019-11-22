@@ -126,8 +126,8 @@ class MetricsCollector(object):
                 'Shows the number of dag starts with this status',
                 labels=['dag_id', 'owner', 'status'] + k
             )
-			for dag in dags:
-	            d_state.add_metric([dag.dag_id, dag.owners, dag.state] + v, dag.count)
+            for dag in dags:
+                d_state.add_metric([dag.dag_id, dag.owners, dag.state] + v, dag.count)
 
             yield d_state
 
