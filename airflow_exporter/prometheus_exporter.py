@@ -103,48 +103,53 @@ class MetricsCollector(object):
         # Each *MetricFamily generates two lines of comments in /metrics, try to minimize noise 
         # by creating new group for each dag
         task_info = get_task_state_info()
-        for dag_id, tasks in itertools.groupby(task_info, lambda x: x.dag_id):
-            k, v = get_dag_labels(dag_id)
 
+        if len(task_info) > 0:
             t_state = GaugeMetricFamily(
                 'airflow_task_status',
                 'Shows the number of task starts with this status',
-                labels=['dag_id', 'task_id', 'owner', 'status'] + k
+                labels=['dag_id', 'task_id', 'owner', 'status']
             )
-            for task in tasks:
-                t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state or 'none'] + v, task.value)
-            
+
+            for dag_id, tasks in itertools.groupby(task_info, lambda x: x.dag_id):
+                for task in tasks:
+                    t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state or 'none'], task.value)
+
             yield t_state
 
         # Dag Metrics
         dag_info = get_dag_state_info()
-        for dag_id, dags in itertools.groupby(dag_info, lambda x: x.dag_id):
-            k, v = get_dag_labels(dag_id)
 
+        if len(dag_info) > 0:
             d_state = GaugeMetricFamily(
                 'airflow_dag_status',
                 'Shows the number of dag starts with this status',
-                labels=['dag_id', 'owner', 'status'] + k
+                labels=['dag_id', 'owner', 'status']
             )
-            for dag in dags:
-                d_state.add_metric([dag.dag_id, dag.owners, dag.state] + v, dag.count)
+
+            for dag_id, dags in itertools.groupby(dag_info, lambda x: x.dag_id):
+                for dag in dags:
+                    d_state.add_metric([dag.dag_id, dag.owners, dag.state], dag.count)
 
             yield d_state
 
         # DagRun metrics
         driver = Session.bind.driver # pylint: disable=no-member
-        for dag in get_dag_duration_info():
-            k, v = get_dag_labels(dag.dag_id)
+        dag_duration_info = get_dag_duration_info()
 
+        if len(dag_duration_info) > 0:
             dag_duration = GaugeMetricFamily(
                 'airflow_dag_run_duration',
                 'Maximum duration of currently running dag_runs for each DAG in seconds',
-                labels=['dag_id'] + k
+                labels=['dag_id']
             )
-            if driver == 'mysqldb' or driver == 'pysqlite':
-                dag_duration.add_metric([dag.dag_id] + v, dag.duration)
-            else:
-                dag_duration.add_metric([dag.dag_id] + v, dag.duration.seconds)
+
+            for dag in dag_duration_info:
+                if driver == 'mysqldb' or driver == 'pysqlite':
+                    dag_duration.add_metric([dag.dag_id], dag.duration)
+                else:
+                    dag_duration.add_metric([dag.dag_id], dag.duration.seconds)
+
             yield dag_duration
 
 
