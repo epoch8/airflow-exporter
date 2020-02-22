@@ -1,9 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## WIP 1.3.0
+## 1.3.0
 
 - Add 'hostname' to airflow_task_status by @forthgate
+- Added pyodbc to dag duration calc by @baolsen
 
 ## 1.2.0
 
