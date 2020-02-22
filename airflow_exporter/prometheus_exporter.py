@@ -39,11 +39,11 @@ def get_task_state_info():
     '''
     task_status_query = Session.query(
         TaskInstance.dag_id, TaskInstance.task_id,
-        TaskInstance.state, func.count(TaskInstance.dag_id).label('value')
-    ).group_by(TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state).subquery()
+        TaskInstance.state, TaskInstance.hostname, func.count(TaskInstance.dag_id).label('value')
+    ).group_by(TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state, TaskInstance.hostname).subquery()
 
     return Session.query(
-        task_status_query.c.dag_id, task_status_query.c.task_id,
+        task_status_query.c.dag_id, task_status_query.c.task_id, task_status_query.c.hostname,
         task_status_query.c.state, task_status_query.c.value, DagModel.owners
     ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).order_by(task_status_query.c.dag_id).all()
 
@@ -109,10 +109,10 @@ class MetricsCollector(object):
             t_state = GaugeMetricFamily(
                 'airflow_task_status',
                 'Shows the number of task starts with this status',
-                labels=['dag_id', 'task_id', 'owner', 'status'] + k
+                labels=['dag_id', 'task_id', 'owner', 'status', 'hostname'] + k
             )
             for task in tasks:
-                t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state or 'none'] + v, task.value)
+                t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state or 'none', task.hostname or 'none'] + v, task.value)
             
             yield t_state
 
