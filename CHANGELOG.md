@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## WIP 1.3.0
+
+- Add 'hostname' to airflow_task_status by @forthgate
+
 ## 1.2.0
 
 - Add custom labels to DAG-related metrics
