@@ -2,10 +2,6 @@
 
 Exposes dag and task based metrics from Airflow to a Prometheus compatible endpoint.
 
-## Discussion
-
-You can ask questions in Gitter channel: https://gitter.im/epoch8/airflow-exporter
-
 ## Screenshots
 
 <img src="https://epoch8.github.io/media/2018/08/03/monitoring-airflow-with-prometheus/metrics_screenshot.png" height="400" width="600"/>
