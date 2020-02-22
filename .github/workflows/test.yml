@@ -1,6 +1,8 @@
 name: Test airflow-exporter
 
-on: [push]
+on:
+  - push
+  - pull_request
 
 jobs:
 
@@ -11,7 +13,7 @@ jobs:
     strategy:
       matrix:
         airflow_version: ['1.10.4']
-        airflow_rbac: [true, false]
+        airflow_rbac: ['true', 'false']
  
     steps:
     - uses: actions/checkout@v1
