@@ -3,7 +3,7 @@
 set -e
 set -x
 
-export AIRFLOW_VERSION=1.10.4
+export AIRFLOW_VERSION=1.10.9
 
 docker-compose down -v --remove-orphans
 
