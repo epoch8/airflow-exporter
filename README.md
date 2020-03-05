@@ -30,7 +30,7 @@ It is possible to add extra labels to DAG-related metrics by providing `labels` 
 
 ### Example
 
-```
+```python
 dag = DAG(
     'dummy_dag',
     schedule_interval=timedelta(hours=5),
