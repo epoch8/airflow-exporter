@@ -162,12 +162,9 @@ class MetricsCollector(object):
         )
 
         xcom_config = load_xcom_config()
-        for tasks in xcom_config.get("xcom_params", []):
-            for param in get_xcom_params(tasks["task_id"]):
-                xcom_value = extract_xcom_parameter(param.value)
-				
-                xcom_params.add_metric(
-                [param.dag_id, param.task_id], xcom_value)
+        for tasks in xcom_config.get("xcom_params", []):		
+			xcom_params.add_metric(
+			[param.dag_id, param.task_id], xcom_value)
 
         yield xcom_params
 
