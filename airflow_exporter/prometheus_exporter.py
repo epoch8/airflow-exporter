@@ -167,7 +167,7 @@ class MetricsCollector(object):
                 xcom_value = extract_xcom_parameter(param.value)
 				
                 xcom_params.add_metric(
-                [param.dag_id, param.task_id], xcom_value]
+                [param.dag_id, param.task_id], xcom_value])
 
         yield xcom_params
 
