@@ -91,6 +91,57 @@ def get_dag_labels(dag_id):
     return list(labels.keys()), list(labels.values())
 
 
+def get_xcom_params(task_id):
+    """XCom parameters for matching task_id's for the latest run of a DAG."""
+    with session_scope(Session) as session:
+        max_execution_dt_query = (
+            session.query(
+                DagRun.dag_id,
+                func.max(DagRun.execution_date).label("max_execution_dt"),
+            )
+            .group_by(DagRun.dag_id)
+            .subquery()
+        )
+
+        query = session.query(XCom.dag_id, XCom.task_id, XCom.value).join(
+            max_execution_dt_query,
+            and_(
+                (XCom.dag_id == max_execution_dt_query.c.dag_id),
+                (
+                    XCom.execution_date
+                    == max_execution_dt_query.c.max_execution_dt
+                ),
+            ),
+        )
+        if task_id == "all":
+            return query.all()
+        else:
+            return query.filter(XCom.task_id == task_id).all()
+
+
+def extract_xcom_parameter(value):
+    """Deserializes value stored in xcom table."""
+    enable_pickling = conf.getboolean("core", "enable_xcom_pickling")
+    if enable_pickling:
+        value = pickle.loads(value)
+        try:
+            value = json.loads(value)
+            return value
+        except Exception:
+            return {}
+    else:
+        try:
+            return json.loads(value.decode("UTF-8"))
+        except ValueError:
+            log = LoggingMixin().log
+            log.error(
+                "Could not deserialize the XCOM value from JSON. "
+                "If you are using pickles instead of JSON "
+                "for XCOM, then you need to enable pickle "
+                "support for XCOM in your airflow config."
+            )
+            return {}
+
 class MetricsCollector(object):
     '''collection of metrics for prometheus'''
 
@@ -99,6 +150,26 @@ class MetricsCollector(object):
 
     def collect(self):
         '''collect metrics'''
+
+		# Xcom metrics
+
+        xcom_params = GaugeMetricFamily(
+            "airflow_xcom_parameter",
+            "Airflow Xcom Parameter",
+            labels=["dag_id", "task_id"],
+        )
+
+        xcom_config = load_xcom_config()
+        for tasks in xcom_config.get("xcom_params", []):
+            for param in get_xcom_params(tasks["task_id"]):
+                xcom_value = extract_xcom_parameter(param.value)
+
+                if tasks["key"] in xcom_value:
+                    xcom_params.add_metric(
+                        [param.dag_id, param.task_id], xcom_value[tasks["key"]]
+                    )
+
+        yield xcom_params
 
         # Task metrics
         # Each *MetricFamily generates two lines of comments in /metrics, try to minimize noise 
