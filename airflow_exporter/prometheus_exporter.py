@@ -55,7 +55,7 @@ def get_dag_duration_info():
     driver = Session.bind.driver # pylint: disable=no-member
     durations = {
         'pysqlite': func.julianday(func.current_timestamp() - func.julianday(DagRun.start_date)) * 86400.0,
-        'mysqldb':  func.timestampdiff(text('second'), DagRun.start_date, func.now()),
+        'pymysql':  func.timestampdiff(text('second'), DagRun.start_date, func.now()),
         'pyodbc': func.sum(func.datediff(text('second'), DagRun.start_date, func.now())),
         'default':  func.now() - DagRun.start_date
     }
