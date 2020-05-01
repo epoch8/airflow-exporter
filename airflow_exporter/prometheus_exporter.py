@@ -10,6 +10,8 @@ from airflow.settings import Session
 from airflow.models import TaskInstance, DagModel, DagRun, DagBag
 from airflow.utils.state import State
 
+from airflow_exporter.xcom_config import load_xcom_config
+
 # Importing base classes that we need to derive
 from prometheus_client import generate_latest, REGISTRY
 from prometheus_client.core import GaugeMetricFamily
