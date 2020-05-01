@@ -213,10 +213,9 @@ class MetricsCollector(object):
                 'Maximum duration of currently running dag_runs for each DAG in seconds',
                 labels=['dag_id'] + k
             )
-            if driver == 'mysql' or driver == 'pysqlite':
-                dag_duration.add_metric([dag.dag_id] + v, dag.duration)
-            else:
-                dag_duration.add_metric([dag.dag_id] + v, dag.duration.seconds)
+
+            dag_duration.add_metric([dag.dag_id] + v, dag.duration)
+
             yield dag_duration
 
 
