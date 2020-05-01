@@ -160,12 +160,12 @@ class MetricsCollector(object):
         # Xcom metrics
 
         xcom_params = GaugeMetricFamily(
-            "airflow_xcom_parameter",
-            "Airflow Xcom Parameter",
-            labels=["dag_id", "task_id"],
+            'airflow_xcom_parameter',
+            'Airflow Xcom Parameter',
+            labels=['dag_id', 'task_id', 'metric'],
         )
 
-        xcom_config = load_xcom_config()
+        xcom_config = load_xcom_config(os.getenv('AIRFLOW_HOME') + '/prometheus_exporter.yaml')
         for tasks in xcom_config.get("xcom_params", []):
             for param in get_xcom_params(tasks["task_id"]):
                 xcom_value = extract_xcom_parameter(param.value)
