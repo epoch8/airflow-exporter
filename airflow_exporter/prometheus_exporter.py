@@ -1,17 +1,23 @@
+import json
+import pickle
+
 from sqlalchemy import func
 from sqlalchemy import text
 
 from flask import Response
 from flask_admin import BaseView, expose
 
+from airflow.configuration import conf
 from airflow.plugins_manager import AirflowPlugin
 from airflow import settings
 from airflow.settings import Session
-from airflow.models import TaskInstance, DagModel, DagRun, DagBag
+from airflow.models import TaskInstance, DagModel, DagRun, DagBag, XCom
 from airflow.utils.state import State
 
 from airflow_exporter.xcom_config import load_xcom_config
 
+from sqlalchemy import and_, func
+from airflow.configuration import conf
 # Importing base classes that we need to derive
 from prometheus_client import generate_latest, REGISTRY
 from prometheus_client.core import GaugeMetricFamily
@@ -95,31 +101,29 @@ def get_dag_labels(dag_id):
 
 def get_xcom_params(task_id):
     """XCom parameters for matching task_id's for the latest run of a DAG."""
-    with session_scope(Session) as session:
-        max_execution_dt_query = (
-            session.query(
-                DagRun.dag_id,
-                func.max(DagRun.execution_date).label("max_execution_dt"),
-            )
-            .group_by(DagRun.dag_id)
-            .subquery()
+    max_execution_dt_query = (
+        Session.query(
+            DagRun.dag_id,
+            func.max(DagRun.execution_date).label("max_execution_dt"),
         )
+         .group_by(DagRun.dag_id)
+         .subquery()
+    )
 
-        query = session.query(XCom.dag_id, XCom.task_id, XCom.value).join(
-            max_execution_dt_query,
-            and_(
-                (XCom.dag_id == max_execution_dt_query.c.dag_id),
-                (
-                    XCom.execution_date
-                    == max_execution_dt_query.c.max_execution_dt
-                ),
+    query = Session.query(XCom.dag_id, XCom.task_id, XCom.value).join(
+        max_execution_dt_query,
+        and_(
+            (XCom.dag_id == max_execution_dt_query.c.dag_id),
+            (
+                XCom.execution_date
+                == max_execution_dt_query.c.max_execution_dt
             ),
-        )
-        if task_id == "all":
-            return query.all()
-        else:
-            return query.filter(XCom.task_id == task_id).all()
-
+        ),
+    )
+    if task_id == "all":
+        return query.all()
+    else:
+        return query.filter(XCom.task_id == task_id).all()
 
 def extract_xcom_parameter(value):
     """Deserializes value stored in xcom table."""
@@ -153,7 +157,7 @@ class MetricsCollector(object):
     def collect(self):
         '''collect metrics'''
 
-		# Xcom metrics
+        # Xcom metrics
 
         xcom_params = GaugeMetricFamily(
             "airflow_xcom_parameter",
@@ -162,11 +166,15 @@ class MetricsCollector(object):
         )
 
         xcom_config = load_xcom_config()
-        for tasks in xcom_config.get("xcom_params", []):		
-			xcom_params.add_metric(
-			[param.dag_id, param.task_id], xcom_value)
+        for tasks in xcom_config.get("xcom_params", []):
+            for param in get_xcom_params(tasks["task_id"]):
+                xcom_value = extract_xcom_parameter(param.value)
+                if task["key"] in xcom_value:
+                    xcom_params.add_metric(
+                    [param.dag_id, param.task_id, task["key"]], xcom_value)
 
         yield xcom_params
+
 
         # Task metrics
         # Each *MetricFamily generates two lines of comments in /metrics, try to minimize noise 
@@ -208,7 +216,7 @@ class MetricsCollector(object):
                 'Maximum duration of currently running dag_runs for each DAG in seconds',
                 labels=['dag_id'] + k
             )
-
+            
             dag_duration.add_metric([dag.dag_id] + v, dag.duration)
 
             yield dag_duration
