@@ -103,6 +103,8 @@ class MetricsCollector(object):
         # Task metrics
         # Each *MetricFamily generates two lines of comments in /metrics, try to minimize noise 
         # by creating new group for each dag
+        
+# Task metrics to be removed as we have more than 20,000 tasks on production which is causing service timing out.         
 #         task_info = get_task_state_info()
 #         for dag_id, tasks in itertools.groupby(task_info, lambda x: x.dag_id):
 #             k, v = get_dag_labels(dag_id)
