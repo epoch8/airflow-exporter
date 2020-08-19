@@ -82,12 +82,12 @@ def get_dag_labels(dag_id):
 
     if dag is None:
         return [], []
-    
+
     labels = dag.params.get('labels')
 
     if labels is None:
         return [], []
-    
+
     return list(labels.keys()), list(labels.values())
 
 
@@ -100,22 +100,7 @@ class MetricsCollector(object):
     def collect(self):
         '''collect metrics'''
 
-        # Task metrics
-        # Each *MetricFamily generates two lines of comments in /metrics, try to minimize noise 
-        # by creating new group for each dag
-        task_info = get_task_state_info()
-        for dag_id, tasks in itertools.groupby(task_info, lambda x: x.dag_id):
-            k, v = get_dag_labels(dag_id)
-
-            t_state = GaugeMetricFamily(
-                'airflow_task_status',
-                'Shows the number of task starts with this status',
-                labels=['dag_id', 'task_id', 'owner', 'status', 'hostname'] + k
-            )
-            for task in tasks:
-                t_state.add_metric([task.dag_id, task.task_id, task.owners, task.state or 'none', task.hostname or 'none'] + v, task.value)
-            
-            yield t_state
+        # Task metrics Removed
 
         # Dag Metrics
         dag_info = get_dag_state_info()
