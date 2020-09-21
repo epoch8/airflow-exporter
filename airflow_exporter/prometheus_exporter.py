@@ -7,16 +7,12 @@ from flask_admin import BaseView, expose
 from airflow.plugins_manager import AirflowPlugin
 from airflow import settings
 from airflow.settings import Session
-from airflow.models import TaskInstance, DagModel, DagRun, DagBag
+from airflow.models import TaskInstance, DagModel, DagRun
 from airflow.utils.state import State
 
 # Importing base classes that we need to derive
 from prometheus_client import generate_latest, REGISTRY
 from prometheus_client.core import GaugeMetricFamily
-
-from contextlib import contextmanager
-
-import itertools
 
 
 def get_dag_state_info():
@@ -28,7 +24,8 @@ def get_dag_state_info():
     ).group_by(DagRun.dag_id, DagRun.state).subquery()
 
     return Session.query(
-        dag_status_query.c.dag_id, dag_status_query.c.state, dag_status_query.c.count,
+        dag_status_query.c.dag_id, dag_status_query.c.state,
+        dag_status_query.c.count,
         DagModel.owners
     ).join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id).all()
 
@@ -39,24 +36,35 @@ def get_task_state_info():
     '''
     task_status_query = Session.query(
         TaskInstance.dag_id, TaskInstance.task_id,
-        TaskInstance.state, TaskInstance.hostname, func.count(TaskInstance.dag_id).label('value')
-    ).group_by(TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state, TaskInstance.hostname).subquery()
+        TaskInstance.state, TaskInstance.hostname,
+        func.count(TaskInstance.dag_id).label('value')
+    ).group_by(
+        TaskInstance.dag_id,
+        TaskInstance.task_id,
+        TaskInstance.state,
+        TaskInstance.hostname)\
+        .subquery()
 
     return Session.query(
-        task_status_query.c.dag_id, task_status_query.c.task_id, task_status_query.c.hostname,
-        task_status_query.c.state, task_status_query.c.value, DagModel.owners
-    ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).order_by(task_status_query.c.dag_id).all()
+        task_status_query.c.dag_id, task_status_query.c.task_id,
+        task_status_query.c.hostname, task_status_query.c.state,
+        task_status_query.c.value, DagModel.owners
+    ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id)\
+        .order_by(task_status_query.c.dag_id).all()
 
 
 def get_dag_duration_info():
     '''get duration of currently running DagRuns
     :return dag_info
     '''
-    driver = Session.bind.driver # pylint: disable=no-member
+    driver = Session.bind.driver  # pylint: disable=no-member
+
+    ctime = func.current_timestamp()
+    sdate = func.julianday(DagRun.start_date)
     durations = {
-        'pysqlite': func.julianday(func.current_timestamp() - func.julianday(DagRun.start_date)) * 86400.0,
-        'mysqldb':  func.timestampdiff(text('second'), DagRun.start_date, func.now()),
-        'pyodbc': func.sum(func.datediff(text('second'), DagRun.start_date, func.now())),
+        'pysqlite': func.julianday(ctime - sdate) * 86400.0,
+        'mysqldb':  func.timestampdiff(text('second'), sdate, func.now()),
+        'pyodbc': func.sum(func.datediff(text('second'), sdate, func.now())),
         'default':  func.now() - DagRun.start_date
     }
     duration = durations.get(driver, durations['default'])
@@ -112,17 +120,20 @@ class MetricsCollector(object):
                 'Shows the number of dag starts with this status',
                 labels=['dag_id', 'owner', 'status'] + k
             )
-            d_state.add_metric([dag.dag_id, dag.owners, dag.state] + v, dag.count)
+            d_state.add_metric(
+                [dag.dag_id, dag.owners, dag.state] + v,
+                dag.count)
             yield d_state
 
         # DagRun metrics
-        driver = Session.bind.driver # pylint: disable=no-member
+        driver = Session.bind.driver  # pylint: disable=no-member
         for dag in get_dag_duration_info():
             k, v = get_dag_labels(dag.dag_id)
 
             dag_duration = GaugeMetricFamily(
                 'airflow_dag_run_duration',
-                'Maximum duration of currently running dag_runs for each DAG in seconds',
+                'Maximum duration of currently running dag_runs \
+                    or each DAG in seconds',
                 labels=['dag_id'] + k
             )
             if driver == 'mysqldb' or driver == 'pysqlite':
@@ -136,12 +147,13 @@ REGISTRY.register(MetricsCollector())
 
 if settings.RBAC:
     from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
+
     class RBACMetrics(FABBaseView):
         route_base = "/admin/metrics/"
+
         @FABexpose('/')
         def list(self):
             return Response(generate_latest(), mimetype='text')
-
 
     # Metrics View for Flask app builder used in airflow with rbac enabled
     RBACmetricsView = {
