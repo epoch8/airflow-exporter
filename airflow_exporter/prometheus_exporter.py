@@ -63,9 +63,9 @@ def get_dag_duration_info():
     sdate = func.julianday(DagRun.start_date)
     durations = {
         'pysqlite': func.julianday(ctime - sdate) * 86400.0,
-        'mysqldb':  func.timestampdiff(text('second'), sdate, func.now()),
+        'mysqldb': func.timestampdiff(text('second'), sdate, func.now()),
         'pyodbc': func.sum(func.datediff(text('second'), sdate, func.now())),
-        'default':  func.now() - DagRun.start_date
+        'default': func.now() - DagRun.start_date
     }
     duration = durations.get(driver, durations['default'])
 
