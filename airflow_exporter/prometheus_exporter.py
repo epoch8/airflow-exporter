@@ -24,13 +24,13 @@ from prometheus_client.samples import Sample
 
 
 @dataclass
-class DagStateInfo:
+class DagStatusInfo:
     dag_id: str
-    state: str
+    status: str
     cnt: int
-    owners: str
+    owner: str
 
-def get_dag_state_info() -> List[DagStateInfo]:
+def get_dag_status_info() -> List[DagStatusInfo]:
     '''get dag info
     :return dag_info
     '''
@@ -44,11 +44,11 @@ def get_dag_state_info() -> List[DagStateInfo]:
     ).join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id).all()
 
     res = [
-        DagStateInfo(
+        DagStatusInfo(
             dag_id = i.dag_id,
-            state = i.state,
+            status = i.state,
             cnt = i.cnt,
-            owners = i.owners
+            owner = i.owners
         )
         for i in sql_res
     ]
@@ -57,14 +57,14 @@ def get_dag_state_info() -> List[DagStateInfo]:
 
 
 @dataclass
-class TaskStateInfo:
+class TaskStatusInfo:
     dag_id: str
     task_id: str
-    state: str
+    status: str
     cnt: int
-    owners: str
+    owner: str
 
-def get_task_state_info() -> List[TaskStateInfo]:
+def get_task_status_info() -> List[TaskStatusInfo]:
     '''get task info
     :return task_info
     '''
@@ -79,12 +79,12 @@ def get_task_state_info() -> List[TaskStateInfo]:
     ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).order_by(task_status_query.c.dag_id).all()
 
     res = [
-        TaskStateInfo(
+        TaskStatusInfo(
             dag_id = i.dag_id,
             task_id = i.task_id,
-            state = i.state,
+            status = i.state or 'none',
             cnt = i.cnt,
-            owners = i.owners
+            owner = i.owners
         )
         for i in sql_res
     ]
@@ -171,7 +171,7 @@ class MetricsCollector(object):
         '''collect metrics'''
 
         # Dag Metrics and collect all labels
-        dag_info = get_dag_state_info()
+        dag_info = get_dag_status_info()
 
         dag_status_metric = GaugeMetricFamily(
             'airflow_dag_status',
@@ -186,8 +186,8 @@ class MetricsCollector(object):
                 dag_status_metric,
                 {
                     'dag_id': dag.dag_id,
-                    'owner': dag.owners,
-                    'status': dag.state,
+                    'owner': dag.owner,
+                    'status': dag.status,
                     **labels
                 },
                 dag.cnt, 
@@ -218,29 +218,29 @@ class MetricsCollector(object):
         # Task metrics
         # Each *MetricFamily generates two lines of comments in /metrics, try to minimize noise
         # by creating new group for each dag
-        task_state_metric = GaugeMetricFamily(
+        task_status_metric = GaugeMetricFamily(
             'airflow_task_status',
             'Shows the number of task starts with this status',
             labels=['dag_id', 'task_id', 'owner', 'status']
         )
 
-        for dag_id, tasks in itertools.groupby(get_task_state_info(), lambda x: x.dag_id):
+        for dag_id, tasks in itertools.groupby(get_task_status_info(), lambda x: x.dag_id):
             labels = get_dag_labels(dag_id)
 
             for task in tasks:
                 _add_gauge_metric(
-                    task_state_metric,
+                    task_status_metric,
                     {
                         'dag_id': task.dag_id,
                         'task_id': task.task_id,
-                        'owner': task.owners,
-                        'status': task.state or 'none',
+                        'owner': task.owner,
+                        'status': task.status,
                         **labels
                     },
                     task.cnt
                 )
 
-        yield task_state_metric
+        yield task_status_metric
 
 
 REGISTRY.register(MetricsCollector())
