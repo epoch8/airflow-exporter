@@ -12,3 +12,5 @@ tests/logs
 dist/
 build/
 *.egg-info
+.venv/
+.mypy_cache/
