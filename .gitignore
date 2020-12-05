@@ -12,3 +12,4 @@ tests/logs
 dist/
 build/
 *.egg-info
+pythonenv*/
