@@ -4,6 +4,10 @@ Exposes dag and task based metrics from Airflow to a Prometheus compatible endpo
 
 ## Compatibility
 
+**Note: Airflow 1.10.14 with Python 3.8 users**
+
+You should install `importlib-metadata` package in order for plugin to be loaded. See [#85](https://github.com/epoch8/airflow-exporter/issues/85) for details.
+
 **Note: this version is compatible with Airflow 1.10.3+ only, see [#46](https://github.com/epoch8/airflow-exporter/issues/46) for details**
 
 For compatibility with previous versions of Airflow use older version: [v0.5.4](https://github.com/epoch8/airflow-exporter/releases/tag/v0.5.4)
