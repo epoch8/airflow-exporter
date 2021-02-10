@@ -16,12 +16,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Setup
-
+    - name: Setup DB
       run: |
         docker-compose up -d postgres
         docker-compose up initdb
 
+    - name: Prepare DAG statuses
+      run: |
         docker-compose run scheduler scheduler -n 1
 
         docker-compose run scheduler dags unpause dummy_dag
@@ -29,8 +30,6 @@ jobs:
         docker-compose run scheduler dags trigger dummy_dag
 
     - name: Wait for Airflow and query metrics
-
       run: |
         # Start the tests container (sut) and attach airflow stdout as well
         docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from=sut sut scheduler webserver
-
