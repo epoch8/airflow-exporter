@@ -4,7 +4,6 @@ from sqlalchemy import text
 from flask import Response
 from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
 
-from airflow.www.views import dagbag
 from airflow.plugins_manager import AirflowPlugin
 from airflow import settings
 from airflow.settings import Session
@@ -74,7 +73,7 @@ def get_dag_duration_info():
 
 def get_dag_labels(dag_id):
     # reuse airflow webserver dagbag
-    dag = dagbag.get_dag(dag_id)
+    dag = DagBag().get_dag(dag_id)
 
     if dag is None:
         return [], []
