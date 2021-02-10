@@ -43,7 +43,7 @@ services:
     volumes:
       - ./tests/dags:/opt/airflow/dags
 #      - ./airflow/plugins:/opt/airflow/plugins
-      - ./tests/logs:/opt/airflow/logs
+#      - ./tests/logs:/opt/airflow/logs
 
   scheduler:
     build:
@@ -58,4 +58,4 @@ services:
     volumes:
       - ./tests/dags:/opt/airflow/dags
 #      - ./airflow/plugins:/opt/airflow/plugins
-      - ./tests/logs:/opt/airflow/logs
+#      - ./tests/logs:/opt/airflow/logs
