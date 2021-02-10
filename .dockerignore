@@ -1,0 +1,4 @@
+.venv
+tests/data
+tests/logs
+tests/postgresql

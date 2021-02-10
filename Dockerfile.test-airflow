@@ -1,0 +1,4 @@
+FROM apache/airflow:2.0.1-python3.8
+
+ADD . /tmp/airflow_exporter
+RUN pip install --no-cache-dir --user /tmp/airflow_exporter
