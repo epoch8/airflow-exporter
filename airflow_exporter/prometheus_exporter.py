@@ -1,20 +1,18 @@
 from sqlalchemy import func
 from sqlalchemy import text
 
-from flask import Response
+from flask import Response, current_app
 from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
 
 from airflow.plugins_manager import AirflowPlugin
 from airflow import settings
 from airflow.settings import Session
-from airflow.models import TaskInstance, DagModel, DagRun, DagBag
+from airflow.models import TaskInstance, DagModel, DagRun
 from airflow.utils.state import State
 
 # Importing base classes that we need to derive
 from prometheus_client import generate_latest, REGISTRY
 from prometheus_client.core import GaugeMetricFamily
-
-from contextlib import contextmanager
 
 import itertools
 
@@ -73,12 +71,13 @@ def get_dag_duration_info():
 
 def get_dag_labels(dag_id):
     # reuse airflow webserver dagbag
-    dag = DagBag().get_dag(dag_id)
+    dag = current_app.dag_bag.get_dag(dag_id)
 
     if dag is None:
         return [], []
 
     labels = dag.params.get('labels')
+    labels = {k:v for k,v in labels.items() if not k.startswith('__')}
 
     if labels is None:
         return [], []
@@ -154,7 +153,7 @@ class RBACMetrics(FABBaseView):
 # Metrics View for Flask app builder used in airflow with rbac enabled
 RBACmetricsView = {
     "view": RBACMetrics(),
-    "name": "metrics",
+    "name": "Metrics",
     "category": "Admin"
 }
 
