@@ -6,7 +6,6 @@ services:
     build:
       context: ./tests
     environment:
-      - AIRFLOW_BASE_URL=http://airflow:8080
-      - AIRFLOW__WEBSERVER__RBAC
+      - AIRFLOW_BASE_URL=http://webserver:8080
     depends_on:
       - webserver
