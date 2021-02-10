@@ -2,7 +2,7 @@ from sqlalchemy import func
 from sqlalchemy import text
 
 from flask import Response
-from flask_admin import BaseView, expose
+from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
 
 from airflow.plugins_manager import AirflowPlugin
 from airflow import settings
@@ -73,12 +73,7 @@ def get_dag_duration_info():
 
 def get_dag_labels(dag_id):
     # reuse airflow webserver dagbag
-    if settings.RBAC:
-        from airflow.www_rbac.views import dagbag
-    else:
-        from airflow.www.views import dagbag
-
-    dag = dagbag.get_dag(dag_id)
+    dag = DagBag().get_dag(dag_id)
 
     if dag is None:
         return [], []
@@ -149,33 +144,22 @@ class MetricsCollector(object):
 
 REGISTRY.register(MetricsCollector())
 
-if settings.RBAC:
-    from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
-    class RBACMetrics(FABBaseView):
-        route_base = "/admin/metrics/"
-        @FABexpose('/')
-        def list(self):
-            return Response(generate_latest(), mimetype='text')
+class RBACMetrics(FABBaseView):
+    route_base = "/admin/metrics/"
+    @FABexpose('/')
+    def list(self):
+        return Response(generate_latest(), mimetype='text')
 
 
-    # Metrics View for Flask app builder used in airflow with rbac enabled
-    RBACmetricsView = {
-        "view": RBACMetrics(),
-        "name": "metrics",
-        "category": "Admin"
-    }
+# Metrics View for Flask app builder used in airflow with rbac enabled
+RBACmetricsView = {
+    "view": RBACMetrics(),
+    "name": "metrics",
+    "category": "Admin"
+}
 
-    www_views = []
-    www_rbac_views = [RBACmetricsView]
-
-else:
-    class Metrics(BaseView):
-        @expose('/')
-        def index(self):
-            return Response(generate_latest(), mimetype='text/plain')
-
-    www_views = [Metrics(category="Admin", name="Metrics")]
-    www_rbac_views = []
+www_views = []
+www_rbac_views = [RBACmetricsView]
 
 
 class AirflowPrometheusPlugins(AirflowPlugin):
