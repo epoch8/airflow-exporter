@@ -1,0 +1,3 @@
+.venv
+tests/data/
+tests/logs/

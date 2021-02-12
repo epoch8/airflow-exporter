@@ -1,19 +1,11 @@
 version: '3'
 
 services:
-  airflow:
-    environment: 
-      SETUPTOOLS_SCM_PRETEND_VERSION: 1.0
-    volumes:
-      - .:/tmp/airflow_exporter
-      - ./tests/airflow-requirements.txt:/requirements.txt
-
   sut:
     image: test_airflow_exporter
     build:
       context: ./tests
     environment:
-      - AIRFLOW_BASE_URL=http://airflow:8080
-      - AIRFLOW__WEBSERVER__RBAC
+      - AIRFLOW_BASE_URL=http://webserver:8080
     depends_on:
-      - airflow
+      - webserver

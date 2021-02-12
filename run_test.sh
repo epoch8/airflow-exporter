@@ -3,14 +3,15 @@
 set -e
 set -x
 
-export AIRFLOW_VERSION=1.10.9
-
 docker-compose down -v --remove-orphans
 
-docker-compose up -d postgresql
-docker-compose run airflow /entrypoint.sh airflow initdb
-docker-compose run airflow /entrypoint.sh airflow unpause dummy_dag
-docker-compose run airflow /entrypoint.sh airflow unpause slow_dag
-docker-compose run airflow /entrypoint.sh airflow trigger_dag dummy_dag
+docker-compose up -d postgres
+docker-compose up initdb
 
-docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from=sut sut airflow
+docker-compose run scheduler scheduler -n 1
+
+docker-compose run scheduler dags unpause dummy_dag
+docker-compose run scheduler dags unpause slow_dag
+docker-compose run scheduler dags trigger dummy_dag
+
+docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from=sut sut scheduler webserver
