@@ -5,7 +5,7 @@ Exposes dag and task based metrics from Airflow to a Prometheus compatible endpo
 ## Compatibility with Airflow versions
 
 ### >=2.0
-This version is compatible with Airflow 2.0+
+Current version is compatible with Airflow 2.0+
 
 ### <=1.10.14, >=1.10.3
 Version v1.3.2 is compatible
