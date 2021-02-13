@@ -77,11 +77,11 @@ def get_dag_labels(dag_id):
         return [], []
 
     labels = dag.params.get('labels')
-    labels = {k:v for k,v in labels.items() if not k.startswith('__')}
 
     if labels is None:
         return [], []
 
+    labels = {k:v for k,v in labels.items() if not k.startswith('__')}
     return list(labels.keys()), list(labels.values())
 
 
