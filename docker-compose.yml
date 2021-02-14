@@ -1,31 +1,61 @@
-version: '3'
+version: "3"
 
 services:
-  postgresql:
-    image: postgres:9.6-alpine
-    environment: 
-      - POSTGRES_PASSWORD=airflowpass
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./tests/postgresql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
-  airflow:
-    image: puckel/docker-airflow:${AIRFLOW_VERSION:-1.10.4}
-    environment:
-      - FERNET_KEY=EpK7iMi1OPb37q2LWC94CA8TJzx_WtJ4f_ODlkFatNc=
-      - LOAD_EX=n
-      - EXECUTOR=Local
-      - POSTGRES_HOST=postgresql
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=airflow
-      - POSTGRES_PASSWORD=airflowpass
-      - POSTGRES_DB=airflow
-      - AIRFLOW__WEBSERVER__RBAC
-    volumes:
-      - ./tests/dags:/usr/local/airflow/dags
-    ports:
-      - 8080:8080
-    depends_on:
-      - postgresql
 
-volumes:
-  postgres-data:
+  postgres:
+    image: "postgres:9.6"
+    container_name: "postgres"
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    ports:
+    - "5432:5432"
+    volumes:
+    - ./tests/data/postgres:/var/lib/postgresql/data
+
+  initdb:
+    build:
+      dockerfile: ./Dockerfile.test-airflow
+      context: .
+    command: initdb
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgres://airflow:airflow@postgres/airflow
+      - _AIRFLOW_DB_UPGRADE=True
+      - _AIRFLOW_WWW_USER_CREATE=True
+      - _AIRFLOW_WWW_USER_USERNAME=admin
+      - _AIRFLOW_WWW_USER_PASSWORD=admin
+    depends_on:
+      - postgres
+
+  webserver:
+    build:
+      dockerfile: ./Dockerfile.test-airflow
+      context: .
+    command: webserver
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgres://airflow:airflow@postgres/airflow
+    ports:
+      - "8080:8080"
+    depends_on:
+      - initdb
+      - postgres
+    volumes:
+      - ./tests/dags:/opt/airflow/dags
+#      - ./airflow/plugins:/opt/airflow/plugins
+#      - ./tests/logs:/opt/airflow/logs
+
+  scheduler:
+    build:
+      dockerfile: ./Dockerfile.test-airflow
+      context: .
+    command: scheduler
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgres://airflow:airflow@postgres/airflow
+    depends_on:
+      - initdb
+      - postgres
+    volumes:
+      - ./tests/dags:/opt/airflow/dags
+#      - ./airflow/plugins:/opt/airflow/plugins
+#      - ./tests/logs:/opt/airflow/logs

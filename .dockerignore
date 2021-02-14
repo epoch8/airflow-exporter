@@ -1,0 +1,5 @@
+tests/
+dist/
+build/
+.venv/
+.eggs/

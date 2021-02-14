@@ -1,0 +1,5 @@
+FROM apache/airflow:1.10.12-python3.8
+
+ADD . /tmp/airflow_exporter
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=dev
+RUN pip install --no-cache-dir --user /tmp/airflow_exporter

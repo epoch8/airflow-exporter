@@ -9,6 +9,7 @@
 .eggs/
 
 tests/logs
+tests/data
 dist/
 build/
 *.egg-info
