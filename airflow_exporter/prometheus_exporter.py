@@ -6,8 +6,9 @@ from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
 
 from airflow.plugins_manager import AirflowPlugin
 from airflow import settings
+
 from airflow.settings import Session
-from airflow.models import TaskInstance, DagModel, DagRun
+from airflow.models import TaskInstance, DagBag, DagModel, DagRun
 from airflow.utils.state import State
 
 # Importing base classes that we need to derive
@@ -70,8 +71,10 @@ def get_dag_duration_info():
 
 
 def get_dag_labels(dag_id):
-    # reuse airflow webserver dagbag
-    dag = current_app.dag_bag.get_dag(dag_id)
+
+    dagbag = DagBag(dag_folder=settings.DAGS_FOLDER)
+
+    dag = dagbag.get_dag(dag_id)
 
     if dag is None:
         return [], []
