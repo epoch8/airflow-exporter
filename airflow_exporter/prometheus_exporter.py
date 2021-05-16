@@ -6,6 +6,7 @@ from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
 
 from airflow.plugins_manager import AirflowPlugin
 from airflow import settings
+
 from airflow.settings import Session
 from airflow.models import TaskInstance, DagBag, DagModel, DagRun
 from airflow.utils.state import State
