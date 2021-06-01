@@ -54,6 +54,7 @@ def get_dag_duration_info():
     durations = {
         'pysqlite': func.julianday(func.current_timestamp() - func.julianday(DagRun.start_date)) * 86400.0,
         'mysqldb':  func.timestampdiff(text('second'), DagRun.start_date, func.now()),
+        'mysqlconnector':  func.timestampdiff(text('second'), DagRun.start_date, func.now()),
         'pyodbc': func.sum(func.datediff(text('second'), DagRun.start_date, func.now())),
         'default':  func.now() - DagRun.start_date
     }
@@ -134,7 +135,7 @@ class MetricsCollector(object):
                 'Maximum duration of currently running dag_runs for each DAG in seconds',
                 labels=['dag_id'] + k
             )
-            if driver == 'mysqldb' or driver == 'pysqlite':
+            if driver in ('mysqldb', 'mysqlconnector') or driver == 'pysqlite':
                 dag_duration.add_metric([dag.dag_id] + v, dag.duration)
             else:
                 dag_duration.add_metric([dag.dag_id] + v, dag.duration.seconds)
