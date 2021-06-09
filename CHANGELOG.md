@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 1.4.2
+
+- Fix for duplicated #HELP entries
+
+## 1.4.0 + 1.4.1
+
+- Add support for Airflow 2.0 [#90](https://github.com/epoch8/airflow-exporter/pull/90) by @dimon222
+
 ## 1.3.2
 
 - Remove 'hostname' from airflow_task_status by @cansjt see https://github.com/epoch8/airflow-exporter/issues/77 for details
