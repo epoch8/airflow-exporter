@@ -13,4 +13,6 @@ tests/data
 dist/
 build/
 *.egg-info
+.venv/
+.mypy_cache/
 pythonenv*/
