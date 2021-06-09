@@ -141,12 +141,11 @@ class MetricsCollector(object):
             yield d_state
 
         # Last DagRun Metrics
-        states = ['success', 'running', 'failed']
         last_dagrun_info = get_last_dagrun_info()
         for dag in last_dagrun_info:
             k, v = get_dag_labels(dag.dag_id)
 
-            for state in states:
+            for state in State.dag_states:
                 ldr_state = GaugeMetricFamily(
                     'airflow_last_dagrun_status',
                     'Shows the status of last dagrun',
