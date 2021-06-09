@@ -8,13 +8,13 @@ import itertools
 from sqlalchemy import func
 from sqlalchemy import text
 
-from flask import Response
-from flask_admin import BaseView, expose
+from flask import Response, current_app
+from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
 
 from airflow.plugins_manager import AirflowPlugin
 from airflow import settings
 from airflow.settings import Session
-from airflow.models import TaskInstance, DagModel, DagRun, DagBag
+from airflow.models import TaskInstance, DagModel, DagRun
 from airflow.utils.state import State
 
 # Importing base classes that we need to derive
@@ -22,6 +22,7 @@ from prometheus_client import generate_latest, REGISTRY
 from prometheus_client.core import GaugeMetricFamily, Metric
 from prometheus_client.samples import Sample
 
+import itertools
 
 @dataclass
 class DagStatusInfo:
@@ -136,17 +137,13 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
 
 def get_dag_labels(dag_id: str) -> Dict[str, str]:
     # reuse airflow webserver dagbag
-    if settings.RBAC:
-        from airflow.www_rbac.views import dagbag
-    else:
-        from airflow.www.views import dagbag
-
-    dag = dagbag.get_dag(dag_id)
+    dag = current_app.dag_bag.get_dag(dag_id)
 
     if dag is None:
         return dict()
 
     labels = dag.params.get('labels')
+    labels = {k:v for k,v in labels.items() if not k.startswith('__')}
 
     if labels is None:
         return dict()
@@ -160,6 +157,7 @@ def _add_gauge_metric(metric, labels, value):
         value, 
         None
     ))
+
 
 class MetricsCollector(object):
     '''collection of metrics for prometheus'''
@@ -245,33 +243,22 @@ class MetricsCollector(object):
 
 REGISTRY.register(MetricsCollector())
 
-if settings.RBAC:
-    from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
-    class RBACMetrics(FABBaseView):
-        route_base = "/admin/metrics/"
-        @FABexpose('/')
-        def list(self):
-            return Response(generate_latest(), mimetype='text')
+class RBACMetrics(FABBaseView):
+    route_base = "/admin/metrics/"
+    @FABexpose('/')
+    def list(self):
+        return Response(generate_latest(), mimetype='text')
 
 
-    # Metrics View for Flask app builder used in airflow with rbac enabled
-    RBACmetricsView = {
-        "view": RBACMetrics(),
-        "name": "metrics",
-        "category": "Admin"
-    }
+# Metrics View for Flask app builder used in airflow with rbac enabled
+RBACmetricsView = {
+    "view": RBACMetrics(),
+    "name": "Metrics",
+    "category": "Admin"
+}
 
-    www_views = []
-    www_rbac_views = [RBACmetricsView]
-
-else:
-    class Metrics(BaseView):
-        @expose('/')
-        def index(self):
-            return Response(generate_latest(), mimetype='text/plain')
-
-    www_views = [Metrics(category="Admin", name="Metrics")]
-    www_rbac_views = []
+www_views = []
+www_rbac_views = [RBACmetricsView]
 
 
 class AirflowPrometheusPlugins(AirflowPlugin):
