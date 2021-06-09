@@ -65,7 +65,6 @@ Labels:
 * `task_id`
 * `owner`
 * `status`
-* `hostname`
 
 Value: number of tasks in specific status.
 
