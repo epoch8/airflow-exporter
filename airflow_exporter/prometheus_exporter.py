@@ -145,14 +145,15 @@ class MetricsCollector(object):
         for dag in last_dagrun_info:
             k, v = get_dag_labels(dag.dag_id)
 
+            ldr_state = GaugeMetricFamily(
+                'airflow_last_dagrun_status',
+                'Shows the status of last dagrun',
+                labels=['dag_id', 'owner', 'status'] + k
+            )
             for state in State.dag_states:
-                ldr_state = GaugeMetricFamily(
-                    'airflow_last_dagrun_status',
-                    'Shows the status of last dagrun',
-                    labels=['dag_id', 'owner', 'status'] + k
-                )
                 ldr_state.add_metric([dag.dag_id, dag.owners, state] + v, int(dag.state == state))
-                yield ldr_state
+
+            yield ldr_state
 
         # DagRun metrics
         driver = Session.bind.driver # pylint: disable=no-member
