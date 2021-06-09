@@ -142,11 +142,8 @@ def get_dag_labels(dag_id: str) -> Dict[str, str]:
     if dag is None:
         return dict()
 
-    labels = dag.params.get('labels')
-    labels = {k:v for k,v in labels.items() if not k.startswith('__')}
-
-    if labels is None:
-        return dict()
+    labels = dag.params.get('labels', {})
+    labels = labels.get('__var', {})
 
     return labels
 
@@ -257,9 +254,6 @@ RBACmetricsView = {
     "category": "Admin"
 }
 
-www_views = []
-www_rbac_views = [RBACmetricsView]
-
 
 class AirflowPrometheusPlugins(AirflowPlugin):
     '''plugin for show metrics'''
@@ -268,8 +262,8 @@ class AirflowPrometheusPlugins(AirflowPlugin):
     hooks = [] # type: ignore
     executors = [] # type: ignore
     macros = [] # type: ignore
-    admin_views = www_views
+    admin_views = [] # type: ignore
     flask_blueprints = [] # type: ignore
     menu_links = [] # type: ignore
-    appbuilder_views = www_rbac_views
+    appbuilder_views = [RBACmetricsView]
     appbuilder_menu_items = [] # type: ignore
