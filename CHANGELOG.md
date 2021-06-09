@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## (WIP) 1.3.3
+## 1.3.3
 
 - Fix for duplicated #HELP entries
 
