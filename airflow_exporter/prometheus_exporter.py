@@ -31,6 +31,22 @@ def get_dag_state_info():
     ).join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id).all()
 
 
+def get_last_dagrun_info():
+    '''get last_dagrun info
+    :return last_dagrun_info
+    '''
+    last_dagrun_query = Session.query(
+        DagRun.dag_id, DagRun.state,
+        func.row_number().over(partition_by=DagRun.dag_id,
+                               order_by=DagRun.execution_date.desc()).label('row_number')
+    ).subquery()
+
+    return Session.query(
+        last_dagrun_query.c.dag_id, last_dagrun_query.c.state, last_dagrun_query.c.row_number,
+        DagModel.owners
+    ).filter(last_dagrun_query.c.row_number == 1).join(DagModel, DagModel.dag_id == last_dagrun_query.c.dag_id).all()
+
+
 def get_task_state_info():
     '''get task info
     :return task_info
@@ -123,6 +139,21 @@ class MetricsCollector(object):
             )
             d_state.add_metric([dag.dag_id, dag.owners, dag.state] + v, dag.count)
             yield d_state
+
+        # Last DagRun Metrics
+        last_dagrun_info = get_last_dagrun_info()
+        for dag in last_dagrun_info:
+            k, v = get_dag_labels(dag.dag_id)
+
+            ldr_state = GaugeMetricFamily(
+                'airflow_last_dagrun_status',
+                'Shows the status of last dagrun',
+                labels=['dag_id', 'owner', 'status'] + k
+            )
+            for state in State.dag_states:
+                ldr_state.add_metric([dag.dag_id, dag.owners, state] + v, int(dag.state == state))
+
+            yield ldr_state
 
         # DagRun metrics
         driver = Session.bind.driver # pylint: disable=no-member
