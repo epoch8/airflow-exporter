@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 1.5.0
+
+- Add `airflow_dag_last_status` [#96](https://github.com/epoch8/airflow-exporter/pull/96) by @nvn01234
+
 ## 1.4.2
 
 - Fix for duplicated #HELP entries
