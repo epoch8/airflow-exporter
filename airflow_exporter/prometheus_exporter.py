@@ -2,7 +2,6 @@ import typing
 from typing import List, Tuple, Optional, Generator, NamedTuple, Dict
 
 from dataclasses import dataclass
-from contextlib import contextmanager
 import itertools
 
 from sqlalchemy import func
@@ -12,7 +11,6 @@ from flask import Response, current_app
 from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
 
 from airflow.plugins_manager import AirflowPlugin
-from airflow import settings
 from airflow.settings import Session
 from airflow.models import TaskInstance, DagModel, DagRun
 from airflow.utils.state import State
@@ -35,6 +33,8 @@ def get_dag_status_info() -> List[DagStatusInfo]:
     '''get dag info
     :return dag_info
     '''
+    assert(Session is not None)
+
     dag_status_query = Session.query( # pylint: disable=no-member
         DagRun.dag_id, DagRun.state, func.count(DagRun.state).label('cnt')
     ).group_by(DagRun.dag_id, DagRun.state).subquery()
@@ -57,6 +57,36 @@ def get_dag_status_info() -> List[DagStatusInfo]:
     return res
 
 
+def get_last_dagrun_info() -> List[DagStatusInfo]:
+    '''get last_dagrun info
+    :return last_dagrun_info
+    '''
+    assert(Session is not None)
+
+    last_dagrun_query = Session.query(
+        DagRun.dag_id, DagRun.state,
+        func.row_number().over(partition_by=DagRun.dag_id,
+                               order_by=DagRun.execution_date.desc()).label('row_number')
+    ).subquery()
+
+    sql_res = Session.query(
+        last_dagrun_query.c.dag_id, last_dagrun_query.c.state, last_dagrun_query.c.row_number,
+        DagModel.owners
+    ).filter(last_dagrun_query.c.row_number == 1).join(DagModel, DagModel.dag_id == last_dagrun_query.c.dag_id).all()
+
+    res = [
+        DagStatusInfo(
+            dag_id = i.dag_id,
+            status = i.state,
+            cnt = 1,
+            owner = i.owners
+        )
+        for i in sql_res
+    ]
+
+    return res
+
+
 @dataclass
 class TaskStatusInfo:
     dag_id: str
@@ -69,6 +99,8 @@ def get_task_status_info() -> List[TaskStatusInfo]:
     '''get task info
     :return task_info
     '''
+    assert(Session is not None)
+
     task_status_query = Session.query( # pylint: disable=no-member
         TaskInstance.dag_id, TaskInstance.task_id,
         TaskInstance.state, func.count(TaskInstance.dag_id).label('cnt')
@@ -101,6 +133,8 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
     '''get duration of currently running DagRuns
     :return dag_info
     '''
+    assert(Session is not None)
+
     driver = Session.bind.driver # pylint: disable=no-member
     durations = {
         'pysqlite': func.julianday(func.current_timestamp() - func.julianday(DagRun.start_date)) * 86400.0,
@@ -190,6 +224,32 @@ class MetricsCollector(object):
         
         yield dag_status_metric
 
+        # Last DagRun Metrics
+        last_dagrun_info = get_last_dagrun_info()
+
+        dag_last_status_metric = GaugeMetricFamily(
+            'airflow_dag_last_status',
+            'Shows the status of last dagrun',
+            labels=['dag_id', 'owner', 'status']
+        )
+
+        for dag in last_dagrun_info:
+            labels = get_dag_labels(dag.dag_id)
+
+            for status in State.dag_states:
+                _add_gauge_metric(
+                    dag_last_status_metric,
+                    {
+                        'dag_id': dag.dag_id,
+                        'owner': dag.owner,
+                        'status': status,
+                        **labels
+                    },
+                    int(dag.status == status)
+                )
+
+        yield dag_last_status_metric
+
         # DagRun metrics
         dag_duration_metric = GaugeMetricFamily(
             'airflow_dag_run_duration',
@@ -211,8 +271,6 @@ class MetricsCollector(object):
         yield dag_duration_metric
 
         # Task metrics
-        # Each *MetricFamily generates two lines of comments in /metrics, try to minimize noise
-        # by creating new group for each dag
         task_status_metric = GaugeMetricFamily(
             'airflow_task_status',
             'Shows the number of task starts with this status',
