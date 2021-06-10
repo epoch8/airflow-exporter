@@ -134,7 +134,8 @@ def get_last_dagrun_task_info() -> List[TaskStatusInfo]:
     task_status_query = Session.query( # pylint: disable=no-member
         TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state,
         func.row_number().over(partition_by=(TaskInstance.dag_id, TaskInstance.task_id),
-                               order_by=TaskInstance.execution_date.desc()).label('row_number')
+                               order_by=(TaskInstance.execution_date.desc(),
+                                         TaskInstance._try_number.desc())).label('row_number')
     ).subquery()
 
     sql_res = Session.query( # pylint: disable=no-member
