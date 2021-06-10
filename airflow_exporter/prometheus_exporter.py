@@ -2,7 +2,6 @@ import typing
 from typing import List, Tuple, Optional, Generator, NamedTuple, Dict
 
 from dataclasses import dataclass
-from contextlib import contextmanager
 import itertools
 
 from sqlalchemy import func
@@ -12,7 +11,6 @@ from flask import Response, current_app
 from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
 
 from airflow.plugins_manager import AirflowPlugin
-from airflow import settings
 from airflow.settings import Session
 from airflow.models import TaskInstance, DagModel, DagRun
 from airflow.utils.state import State
@@ -230,7 +228,7 @@ class MetricsCollector(object):
         last_dagrun_info = get_last_dagrun_info()
 
         last_dagrun_status_metric = GaugeMetricFamily(
-            'airflow_last_dagrun_status',
+            'airflow_dag_last_status',
             'Shows the status of last dagrun',
             labels=['dag_id', 'owner', 'status']
         )
@@ -273,8 +271,6 @@ class MetricsCollector(object):
         yield dag_duration_metric
 
         # Task metrics
-        # Each *MetricFamily generates two lines of comments in /metrics, try to minimize noise
-        # by creating new group for each dag
         task_status_metric = GaugeMetricFamily(
             'airflow_task_status',
             'Shows the number of task starts with this status',
