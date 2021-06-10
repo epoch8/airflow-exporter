@@ -342,13 +342,14 @@ class MetricsCollector(object):
             for task in tasks:
 
                 for status in State.task_states:
+                    status = status or 'none'
                     _add_gauge_metric(
                         task_last_status_metric,
                         {
                             'dag_id': task.dag_id,
                             'task_id': task.task_id,
                             'owner': task.owner,
-                            'status': status or 'none',
+                            'status': status,
                             **labels
                         },
                         int(task.status == status)
