@@ -227,7 +227,7 @@ class MetricsCollector(object):
         # Last DagRun Metrics
         last_dagrun_info = get_last_dagrun_info()
 
-        last_dagrun_status_metric = GaugeMetricFamily(
+        dag_last_status_metric = GaugeMetricFamily(
             'airflow_dag_last_status',
             'Shows the status of last dagrun',
             labels=['dag_id', 'owner', 'status']
@@ -238,7 +238,7 @@ class MetricsCollector(object):
 
             for status in State.dag_states:
                 _add_gauge_metric(
-                    last_dagrun_status_metric,
+                    dag_last_status_metric,
                     {
                         'dag_id': dag.dag_id,
                         'owner': dag.owner,
@@ -248,7 +248,7 @@ class MetricsCollector(object):
                     int(dag.status == status)
                 )
 
-        yield last_dagrun_status_metric
+        yield dag_last_status_metric
 
         # DagRun metrics
         dag_duration_metric = GaugeMetricFamily(
