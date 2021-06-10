@@ -97,6 +97,17 @@ Labels:
 
 Value: 0 or 1 depending on wherever the current state of each `dag_id` is `status`.
 
+### `airflow_task_last_status`
+
+Labels:
+
+* `dag_id`
+* `task_id`
+* `owner`
+* `status`
+
+Value: 0 or 1 depending on wherever the current state of each (`dag_id`, `task_id`) is `status`.
+
 ## License
 
 Distributed under the BSD license. See [LICENSE](LICENSE) for more

@@ -124,6 +124,40 @@ def get_task_status_info() -> List[TaskStatusInfo]:
 
     return res
 
+
+def get_last_dagrun_task_info() -> List[TaskStatusInfo]:
+    '''get task info or the last dagrun for each dag
+    :return last_dagrun_task_info
+    '''
+    assert(Session is not None)
+
+    task_status_query = Session.query( # pylint: disable=no-member
+        TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state,
+        func.row_number().over(partition_by=(TaskInstance.dag_id, TaskInstance.task_id),
+                               order_by=TaskInstance.execution_date.desc()).label('row_number')
+    ).subquery()
+
+    sql_res = Session.query( # pylint: disable=no-member
+        task_status_query.c.dag_id, task_status_query.c.task_id,
+        task_status_query.c.state, task_status_query.c.row_number, DagModel.owners
+    ) \
+        .filter(task_status_query.c.row_number == 1) \
+        .join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).order_by(task_status_query.c.dag_id).all()
+
+    res = [
+        TaskStatusInfo(
+            dag_id = i.dag_id,
+            task_id = i.task_id,
+            status = i.state or 'none',
+            cnt = 1,
+            owner = i.owners
+        )
+        for i in sql_res
+    ]
+
+    return res
+
+
 @dataclass
 class DagDurationInfo:
     dag_id: str
@@ -294,6 +328,33 @@ class MetricsCollector(object):
                 )
 
         yield task_status_metric
+
+        # Task of last DagRun metrics
+        task_last_status_metric = GaugeMetricFamily(
+            'airflow_task_last_status',
+            'Shows the number of task starts with this status',
+            labels=['dag_id', 'task_id', 'owner', 'status']
+        )
+
+        for dag_id, tasks in itertools.groupby(get_last_dagrun_task_info(), lambda x: x.dag_id):
+            labels = get_dag_labels(dag_id)
+
+            for task in tasks:
+
+                for status in State.task_states:
+                    _add_gauge_metric(
+                        task_last_status_metric,
+                        {
+                            'dag_id': task.dag_id,
+                            'task_id': task.task_id,
+                            'owner': task.owner,
+                            'status': status,
+                            **labels
+                        },
+                        int(task.status == status)
+                    )
+
+        yield task_last_status_metric
 
 
 REGISTRY.register(MetricsCollector())
