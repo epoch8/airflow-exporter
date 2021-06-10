@@ -332,7 +332,7 @@ class MetricsCollector(object):
         # Task of last DagRun metrics
         task_last_status_metric = GaugeMetricFamily(
             'airflow_task_last_status',
-            'Shows the number of task starts with this status',
+            'Shows the status of task in the last dagrun',
             labels=['dag_id', 'task_id', 'owner', 'status']
         )
 
