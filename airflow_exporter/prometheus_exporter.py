@@ -348,7 +348,7 @@ class MetricsCollector(object):
                             'dag_id': task.dag_id,
                             'task_id': task.task_id,
                             'owner': task.owner,
-                            'status': status,
+                            'status': status or 'none',
                             **labels
                         },
                         int(task.status == status)
