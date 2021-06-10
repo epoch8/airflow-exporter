@@ -35,6 +35,8 @@ def get_dag_status_info() -> List[DagStatusInfo]:
     '''get dag info
     :return dag_info
     '''
+    assert(Session is not None)
+
     dag_status_query = Session.query( # pylint: disable=no-member
         DagRun.dag_id, DagRun.state, func.count(DagRun.state).label('cnt')
     ).group_by(DagRun.dag_id, DagRun.state).subquery()
@@ -69,6 +71,8 @@ def get_task_status_info() -> List[TaskStatusInfo]:
     '''get task info
     :return task_info
     '''
+    assert(Session is not None)
+
     task_status_query = Session.query( # pylint: disable=no-member
         TaskInstance.dag_id, TaskInstance.task_id,
         TaskInstance.state, func.count(TaskInstance.dag_id).label('cnt')
@@ -101,6 +105,8 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
     '''get duration of currently running DagRuns
     :return dag_info
     '''
+    assert(Session is not None)
+
     driver = Session.bind.driver # pylint: disable=no-member
     durations = {
         'pysqlite': func.julianday(func.current_timestamp() - func.julianday(DagRun.start_date)) * 86400.0,
