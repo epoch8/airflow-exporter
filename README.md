@@ -66,7 +66,7 @@ Labels:
 * `owner`
 * `status`
 
-Value: number of tasks in specific status.
+Value: number of tasks in a specific status.
 
 ### `airflow_dag_status`
 
@@ -76,7 +76,7 @@ Labels:
 * `owner`
 * `status`
 
-Value: number of dags in specific status.
+Value: number of dags in a specific status.
 
 ### `airflow_dag_run_duration`
 
@@ -85,7 +85,17 @@ Labels:
 * `dag_id`: unique identifier for a given DAG
 
 Value: duration in seconds of the longest DAG Run for given DAG. This metric 
-is not available for DAGs that have already completed.
+is not available for DAGs that have already finished.
+
+### `airflow_dag_last_status`
+
+Labels:
+
+* `dag_id`
+* `owner`
+* `status`
+
+Value: 0 or 1 depending on wherever the current state of each `dag_id` is `status`.
 
 ## License
 
