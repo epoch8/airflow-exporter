@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 1.5.1
+
+- Add compatibility with `mysqlconnector` DB connection [#94](https://github.com/epoch8/airflow-exporter/pull/94) by @lxxstc
+
 ## 1.5.0
 
 - Add `airflow_dag_last_status` [#96](https://github.com/epoch8/airflow-exporter/pull/96) by @nvn01234
@@ -15,7 +19,7 @@ All notable changes to this project will be documented in this file.
 
 ## 1.3.2
 
-- Remove 'hostname' from airflow_task_status by @cansjt see https://github.com/epoch8/airflow-exporter/issues/77 for details
+- Remove 'hostname' from airflow_task_status by @cansjt see [#77](https://github.com/epoch8/airflow-exporter/issues/77) for details
 
 ## 1.3.0
 

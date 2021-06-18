@@ -139,6 +139,7 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
     durations = {
         'pysqlite': func.julianday(func.current_timestamp() - func.julianday(DagRun.start_date)) * 86400.0,
         'mysqldb':  func.timestampdiff(text('second'), DagRun.start_date, func.now()),
+        'mysqlconnector':  func.timestampdiff(text('second'), DagRun.start_date, func.now()),
         'pyodbc': func.sum(func.datediff(text('second'), DagRun.start_date, func.now())),
         'default':  func.now() - DagRun.start_date
     }
@@ -156,7 +157,7 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
     res = []
 
     for i in sql_res:
-        if driver == 'mysqldb' or driver == 'pysqlite':
+        if driver in ('mysqldb', 'mysqlconnector', 'pysqlite'):
             dag_duration = i.duration
         else:
             dag_duration = i.duration.seconds
