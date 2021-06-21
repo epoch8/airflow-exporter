@@ -167,7 +167,48 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
             duration = dag_duration
         ))
 
-    return res        
+    return res
+
+
+def get_dag_elapsed_info() -> List[DagDurationInfo]:
+    '''get elapsed time from the last successful DagRuns
+    :return dag_info
+    '''
+    assert(Session is not None)
+
+    driver = Session.bind.driver # pylint: disable=no-member
+    durations = {
+        'pysqlite': func.julianday(func.current_timestamp() - func.julianday(DagRun.start_date)) * 86400.0,
+        'mysqldb':  func.timestampdiff(text('second'), DagRun.start_date, func.now()),
+        'mysqlconnector':  func.timestampdiff(text('second'), DagRun.start_date, func.now()),
+        'pyodbc': func.sum(func.datediff(text('second'), DagRun.start_date, func.now())),
+        'default':  func.now() - DagRun.start_date
+    }
+    duration = durations.get(driver, durations['default'])
+
+    sql_res = Session.query( # pylint: disable=no-member
+        DagRun.dag_id,
+        func.min(duration).label('duration')
+    ).group_by(
+        DagRun.dag_id
+    ).filter(
+        DagRun.state == State.SUCCESS
+    ).all()
+
+    res = []
+
+    for i in sql_res:
+        if driver in ('mysqldb', 'mysqlconnector', 'pysqlite'):
+            dag_duration = i.duration
+        else:
+            dag_duration = i.duration.total_seconds()
+
+        res.append(DagDurationInfo(
+            dag_id = i.dag_id,
+            duration = dag_duration
+        ))
+
+    return res
 
 
 def get_dag_labels(dag_id: str) -> Dict[str, str]:
@@ -186,7 +227,7 @@ def get_dag_labels(dag_id: str) -> Dict[str, str]:
 def _add_gauge_metric(metric, labels, value):
     metric.samples.append(Sample(
         metric.name, labels,
-        value, 
+        value,
         None
     ))
 
@@ -220,9 +261,9 @@ class MetricsCollector(object):
                     'status': dag.status,
                     **labels
                 },
-                dag.cnt, 
+                dag.cnt,
             )
-        
+
         yield dag_status_metric
 
         # Last DagRun Metrics
@@ -251,7 +292,7 @@ class MetricsCollector(object):
 
         yield dag_last_status_metric
 
-        # DagRun metrics
+        # DagRun metrics - airflow_dag_run_duration
         dag_duration_metric = GaugeMetricFamily(
             'airflow_dag_run_duration',
             'Maximum duration of currently running dag_runs for each DAG in seconds',
@@ -270,6 +311,26 @@ class MetricsCollector(object):
             )
 
         yield dag_duration_metric
+
+        # DagRun metric - airflow_dag_elapsed_time
+        dag_elapsed_metric = GaugeMetricFamily(
+            'airflow_dag_elapsed_time',
+            'Time from the last successful dag runs for each DAG in seconds (now - start_date)',
+            labels=['dag_id']
+        )
+        for dag_elapsed_info in get_dag_elapsed_info():
+            labels = get_dag_labels(dag_elapsed_info.dag_id)
+
+            _add_gauge_metric(
+                dag_elapsed_metric,
+                {
+                    'dag_id': dag_elapsed_info.dag_id,
+                    **labels
+                },
+                dag_elapsed_info.duration
+            )
+
+        yield dag_elapsed_metric
 
         # Task metrics
         task_status_metric = GaugeMetricFamily(
