@@ -160,7 +160,7 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
         if driver in ('mysqldb', 'mysqlconnector', 'pysqlite'):
             dag_duration = i.duration
         else:
-            dag_duration = i.duration.seconds
+            dag_duration = i.duration.total_seconds()
 
         res.append(DagDurationInfo(
             dag_id = i.dag_id,
