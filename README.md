@@ -87,6 +87,15 @@ Labels:
 Value: duration in seconds of the longest DAG Run for given DAG. This metric 
 is not available for DAGs that have already finished.
 
+### `airflow_dag_elapsed_time`
+
+Labels:
+
+* `dag_id`: unique identifier for a given DAG
+
+Value: duration in seconds from the last successful dag run's start date.
+
+
 ### `airflow_dag_last_status`
 
 Labels:
