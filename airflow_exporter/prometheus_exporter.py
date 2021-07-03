@@ -13,6 +13,7 @@ from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
 from airflow.plugins_manager import AirflowPlugin
 from airflow.settings import Session
 from airflow.models import TaskInstance, DagModel, DagRun
+from airflow.models.serialized_dag import SerializedDagModel
 from airflow.utils.state import State
 
 # Importing base classes that we need to derive
@@ -42,7 +43,7 @@ def get_dag_status_info() -> List[DagStatusInfo]:
     sql_res = Session.query( # pylint: disable=no-member
         dag_status_query.c.dag_id, dag_status_query.c.state, dag_status_query.c.cnt,
         DagModel.owners
-    ).join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id).all()
+    ).join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id).join(SerializedDagModel, SerializedDagModel.dag_id == dag_status_query.c.dag_id).all()
 
     res = [
         DagStatusInfo(
@@ -72,7 +73,7 @@ def get_last_dagrun_info() -> List[DagStatusInfo]:
     sql_res = Session.query(
         last_dagrun_query.c.dag_id, last_dagrun_query.c.state, last_dagrun_query.c.row_number,
         DagModel.owners
-    ).filter(last_dagrun_query.c.row_number == 1).join(DagModel, DagModel.dag_id == last_dagrun_query.c.dag_id).all()
+    ).filter(last_dagrun_query.c.row_number == 1).join(DagModel, DagModel.dag_id == last_dagrun_query.c.dag_id).join(SerializedDagModel, SerializedDagModel.dag_id == last_dagrun_query.c.dag_id).all()
 
     res = [
         DagStatusInfo(
@@ -109,7 +110,7 @@ def get_task_status_info() -> List[TaskStatusInfo]:
     sql_res = Session.query( # pylint: disable=no-member
         task_status_query.c.dag_id, task_status_query.c.task_id,
         task_status_query.c.state, task_status_query.c.cnt, DagModel.owners
-    ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).order_by(task_status_query.c.dag_id).all()
+    ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).join(SerializedDagModel, SerializedDagModel.dag_id == task_status_query.c.dag_id).order_by(task_status_query.c.dag_id).all()
 
     res = [
         TaskStatusInfo(
@@ -152,6 +153,8 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
         DagRun.dag_id
     ).filter(
         DagRun.state == State.RUNNING
+    ).join(
+        SerializedDagModel, SerializedDagModel.dag_id == DagRun.dag_id
     ).all()
 
     res = []
