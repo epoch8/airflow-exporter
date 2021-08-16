@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 1.5.2
+
+- Fix DAG not found in serialized_dag table [#98](https://github.com/epoch8/airflow-exporter/issues/98) by @sawaca96
+
 ## 1.5.1
 
 - Add compatibility with `mysqlconnector` DB connection [#94](https://github.com/epoch8/airflow-exporter/pull/94) by @lxxstc
