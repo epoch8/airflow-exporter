@@ -40,10 +40,15 @@ def get_dag_status_info() -> List[DagStatusInfo]:
         DagRun.dag_id, DagRun.state, func.count(DagRun.state).label('cnt')
     ).group_by(DagRun.dag_id, DagRun.state).subquery()
 
-    sql_res = Session.query( # pylint: disable=no-member
-        dag_status_query.c.dag_id, dag_status_query.c.state, dag_status_query.c.cnt,
-        DagModel.owners
-    ).join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id).join(SerializedDagModel, SerializedDagModel.dag_id == dag_status_query.c.dag_id).all()
+    sql_res = (
+        Session.query( # pylint: disable=no-member
+            dag_status_query.c.dag_id, dag_status_query.c.state, dag_status_query.c.cnt,
+            DagModel.owners
+        )
+        .join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id)
+        .join(SerializedDagModel, SerializedDagModel.dag_id == dag_status_query.c.dag_id)
+        .all()
+    )
 
     res = [
         DagStatusInfo(
@@ -70,10 +75,16 @@ def get_last_dagrun_info() -> List[DagStatusInfo]:
                                order_by=DagRun.execution_date.desc()).label('row_number')
     ).subquery()
 
-    sql_res = Session.query(
-        last_dagrun_query.c.dag_id, last_dagrun_query.c.state, last_dagrun_query.c.row_number,
-        DagModel.owners
-    ).filter(last_dagrun_query.c.row_number == 1).join(DagModel, DagModel.dag_id == last_dagrun_query.c.dag_id).join(SerializedDagModel, SerializedDagModel.dag_id == last_dagrun_query.c.dag_id).all()
+    sql_res = (
+        Session.query(
+            last_dagrun_query.c.dag_id, last_dagrun_query.c.state, last_dagrun_query.c.row_number,
+            DagModel.owners
+        )
+        .filter(last_dagrun_query.c.row_number == 1)
+        .join(DagModel, DagModel.dag_id == last_dagrun_query.c.dag_id)
+        .join(SerializedDagModel, SerializedDagModel.dag_id == last_dagrun_query.c.dag_id)
+        .all()
+    )
 
     res = [
         DagStatusInfo(
@@ -107,10 +118,16 @@ def get_task_status_info() -> List[TaskStatusInfo]:
         TaskInstance.state, func.count(TaskInstance.dag_id).label('cnt')
     ).group_by(TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state).subquery()
 
-    sql_res = Session.query( # pylint: disable=no-member
-        task_status_query.c.dag_id, task_status_query.c.task_id,
-        task_status_query.c.state, task_status_query.c.cnt, DagModel.owners
-    ).join(DagModel, DagModel.dag_id == task_status_query.c.dag_id).join(SerializedDagModel, SerializedDagModel.dag_id == task_status_query.c.dag_id).order_by(task_status_query.c.dag_id).all()
+    sql_res = (
+        Session.query( # pylint: disable=no-member
+            task_status_query.c.dag_id, task_status_query.c.task_id,
+            task_status_query.c.state, task_status_query.c.cnt, DagModel.owners
+        )
+        .join(DagModel, DagModel.dag_id == task_status_query.c.dag_id)
+        .join(SerializedDagModel, SerializedDagModel.dag_id == task_status_query.c.dag_id)
+        .order_by(task_status_query.c.dag_id)
+        .all()
+    )
 
     res = [
         TaskStatusInfo(
@@ -146,16 +163,16 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
     }
     duration = durations.get(driver, durations['default'])
 
-    sql_res = Session.query( # pylint: disable=no-member
-        DagRun.dag_id,
-        func.max(duration).label('duration')
-    ).group_by(
-        DagRun.dag_id
-    ).filter(
-        DagRun.state == State.RUNNING
-    ).join(
-        SerializedDagModel, SerializedDagModel.dag_id == DagRun.dag_id
-    ).all()
+    sql_res = (
+        Session.query( # pylint: disable=no-member
+            DagRun.dag_id,
+            func.max(duration).label('duration')
+        )
+        .group_by(DagRun.dag_id)
+        .filter(DagRun.state == State.RUNNING)
+        .join(SerializedDagModel, SerializedDagModel.dag_id == DagRun.dag_id)
+        .all()
+    )
 
     res = []
 
