@@ -28,6 +28,7 @@ class DagStatusInfo:
     dag_id: str
     status: str
     cnt: int
+    paused: str
     owner: str
 
 def get_dag_status_info() -> List[DagStatusInfo]:
@@ -43,7 +44,7 @@ def get_dag_status_info() -> List[DagStatusInfo]:
     sql_res = (
         Session.query( # pylint: disable=no-member
             dag_status_query.c.dag_id, dag_status_query.c.state, dag_status_query.c.cnt,
-            DagModel.owners
+            DagModel.is_paused, DagModel.owners
         )
         .join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id)
         .join(SerializedDagModel, SerializedDagModel.dag_id == dag_status_query.c.dag_id)
@@ -55,6 +56,7 @@ def get_dag_status_info() -> List[DagStatusInfo]:
             dag_id = i.dag_id,
             status = i.state,
             cnt = i.cnt,
+            paused = str(i.is_paused).lower(),
             owner = i.owners
         )
         for i in sql_res
@@ -78,7 +80,7 @@ def get_last_dagrun_info() -> List[DagStatusInfo]:
     sql_res = (
         Session.query(
             last_dagrun_query.c.dag_id, last_dagrun_query.c.state, last_dagrun_query.c.row_number,
-            DagModel.owners
+            DagModel.is_paused, DagModel.owners
         )
         .filter(last_dagrun_query.c.row_number == 1)
         .join(DagModel, DagModel.dag_id == last_dagrun_query.c.dag_id)
@@ -90,6 +92,7 @@ def get_last_dagrun_info() -> List[DagStatusInfo]:
         DagStatusInfo(
             dag_id = i.dag_id,
             status = i.state,
+            paused = str(i.is_paused).lower(),
             cnt = 1,
             owner = i.owners
         )
@@ -238,6 +241,7 @@ class MetricsCollector(object):
                     'dag_id': dag.dag_id,
                     'owner': dag.owner,
                     'status': dag.status,
+                    'paused': dag.paused,
                     **labels
                 },
                 dag.cnt, 
@@ -264,6 +268,7 @@ class MetricsCollector(object):
                         'dag_id': dag.dag_id,
                         'owner': dag.owner,
                         'status': status,
+                        'paused': dag.paused,
                         **labels
                     },
                     int(dag.status == status)
