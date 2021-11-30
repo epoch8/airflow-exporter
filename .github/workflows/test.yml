@@ -32,7 +32,7 @@ jobs:
     - uses: actions/checkout@v1
 
     - name: Install Airflow
-      run: pip install "apache-airflow >= 2.2.0"
+      run: pip install "apache-airflow >= 2.2.0" psycopg2-binary
 
     - name: Install airflow-exporter
       run: pip install .
