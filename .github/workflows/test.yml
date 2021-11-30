@@ -23,13 +23,14 @@ jobs:
         ports:
         - "5432"
 
-    container:
-      image: python:3.8
-      env:
-        AIRFLOW_HOME: tests/
+    env:
+      AIRFLOW_HOME: tests/
 
     steps:
     - uses: actions/checkout@v1
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
 
     - name: Install Airflow
       run: pip install "apache-airflow >= 2.2.0" psycopg2-binary wtforms==2.3.3
