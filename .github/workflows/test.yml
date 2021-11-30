@@ -18,12 +18,12 @@ jobs:
       fail-fast: false
       matrix:
         airflow-version:
-          - "2.0.2"
-          - "2.1.4"
+          # - "2.0.2"
+          # - "2.1.4"
           - "2.2.1"
 
     env:
-      AIRFLOW_HOME: tests/
+      AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests/
 
     steps:
     - uses: actions/checkout@v1
@@ -44,10 +44,10 @@ jobs:
       run: |
         airflow db init
 
-        airflow scheduler -D
-
         airflow dags unpause dummy_dag
         airflow dags unpause slow_dag
+
+        airflow scheduler -n 1
 
         airflow dags trigger dummy_dag
 
