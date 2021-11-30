@@ -31,7 +31,7 @@ jobs:
         python-version: '3.8'
 
     - name: Setup database
-      run: docker-compose up -d tests/docker-compose.yml
+      run: docker-compose up -d -f tests/docker-compose.yml
 
     - name: Install Airflow
       run: pip install "apache-airflow == ${{ matrix.airflow-version }}" psycopg2-binary wtforms==2.3.3
