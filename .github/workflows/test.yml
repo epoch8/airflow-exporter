@@ -39,11 +39,11 @@ jobs:
 
     - name: Prepare DAG statuses
       run: |
-        airflow scheduler scheduler -n 1
+        airflow scheduler -n 1
 
-        airflow scheduler dags unpause dummy_dag
-        airflow scheduler dags unpause slow_dag
-        airflow scheduler dags trigger dummy_dag
+        airflow dags unpause dummy_dag
+        airflow dags unpause slow_dag
+        airflow dags trigger dummy_dag
 
     - name: Wait for Airflow and query metrics
       run: |
