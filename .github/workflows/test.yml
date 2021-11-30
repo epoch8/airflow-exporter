@@ -21,16 +21,6 @@ jobs:
           - "2.1.0"
           - "2.2.0"
 
-    services:
-      postgres:
-        image: "postgres:9.6"
-        env:
-          POSTGRES_USER: airflow
-          POSTGRES_PASSWORD: airflow
-          POSTGRES_DB: airflow
-        ports:
-        - "5432:5432"
-
     env:
       AIRFLOW_HOME: tests/
 
@@ -39,6 +29,9 @@ jobs:
     - uses: actions/setup-python@v2
       with:
         python-version: '3.8'
+
+    - name: Setup database
+      run: docker-compose up -d tests/docker-compose.yml
 
     - name: Install Airflow
       run: pip install "apache-airflow == ${{ matrix.airflow-version }}" psycopg2-binary wtforms==2.3.3
