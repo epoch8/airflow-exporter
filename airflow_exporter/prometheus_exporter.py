@@ -81,7 +81,7 @@ def get_dag_labels(dag_id):
     if labels is None:
         return [], []
 
-    labels = {k:v for k,v in labels.items() if not k.startswith('__')}
+    labels = {k:v for k,v in labels.value.items() if not k.startswith('__')}
     return list(labels.keys()), list(labels.values())
 
 
