@@ -21,7 +21,7 @@ jobs:
           POSTGRES_PASSWORD: airflow
           POSTGRES_DB: airflow
         ports:
-        - "5432"
+        - "5432:5432"
 
     env:
       AIRFLOW_HOME: tests/
