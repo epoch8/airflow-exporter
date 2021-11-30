@@ -13,6 +13,14 @@ jobs:
   test:
  
     runs-on: ubuntu-latest
+ 
+    strategy:
+      matrix:
+        airflow-version:
+          - "2.0.0"
+          - "2.1.0"
+          - "2.2.0"
+
     services:
       postgres:
         image: "postgres:9.6"
@@ -33,7 +41,7 @@ jobs:
         python-version: '3.8'
 
     - name: Install Airflow
-      run: pip install "apache-airflow >= 2.2.0" psycopg2-binary wtforms==2.3.3
+      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" psycopg2-binary wtforms==2.3.3
 
     - name: Install airflow-exporter
       run: pip install .
