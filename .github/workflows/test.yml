@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
  
     strategy:
+      fail-fast: false
       matrix:
         airflow-version:
           - "2.0.0"
@@ -31,7 +32,7 @@ jobs:
         python-version: '3.8'
 
     - name: Setup database
-      run: docker-compose up -d -f tests/docker-compose.yml
+      run: docker-compose -f tests/docker-compose.yml up -d
 
     - name: Install Airflow
       run: pip install "apache-airflow == ${{ matrix.airflow-version }}" psycopg2-binary wtforms==2.3.3
