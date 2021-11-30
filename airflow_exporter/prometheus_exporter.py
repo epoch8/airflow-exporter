@@ -198,7 +198,7 @@ def get_dag_labels(dag_id: str) -> Dict[str, str]:
         return dict()
 
     labels = dag.params.get('labels', {})
-    labels = labels.get('__var', {})
+    labels = {k:v for k,v in labels.value.items() if not k.startswith('__')}
 
     return labels
 

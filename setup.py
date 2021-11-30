@@ -10,7 +10,7 @@ with open(readme_file) as f:
 
 setup(
     name="airflow-exporter",
-    use_scm_version=True,
+    version="1.6.0+dev",
     description="Airflow plugin to export dag and task based metrics to Prometheus.",
     long_description=readme,
     long_description_content_type="text/markdown",
@@ -29,7 +29,7 @@ setup(
     packages=["airflow_exporter"],
     setup_requires=["setuptools_scm"],
     install_requires=[
-        "apache-airflow>=2.0.0",
+        "apache-airflow>=2.2.0",
         "prometheus_client>=0.4.2",
     ],
     entry_points={
