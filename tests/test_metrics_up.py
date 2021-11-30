@@ -1,6 +1,7 @@
 import os
 import sys
 import requests
+from requests.exceptions import ConnectionError
 import time
 
 AIRFLOW_BASE_URL = os.environ.get("AIRFLOW_BASE_URL", "http://localhost:8080")
@@ -8,9 +9,12 @@ HEALTH_ENDPOINT = f"{AIRFLOW_BASE_URL}/health"
 METRICS_ENDPOINT = f"{AIRFLOW_BASE_URL}/admin/metrics/"
 
 for i in range(120):
-    res = requests.get(HEALTH_ENDPOINT)
-    if res.status_code == 200:
-        break
+    try:
+        res = requests.get(HEALTH_ENDPOINT)
+        if res.status_code == 200:
+            break
+    except ConnectionError:
+        pass
 
     time.sleep(1)
 else:
