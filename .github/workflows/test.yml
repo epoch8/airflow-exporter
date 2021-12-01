@@ -40,16 +40,21 @@ jobs:
     - name: Install airflow-exporter
       run: pip install .
 
+    - name: Init Airflow DB
+      run: airflow db init
+
     - name: Prepare DAG statuses
       run: |
-        airflow db init
+        airflow dags list
 
         airflow dags unpause dummy_dag
         airflow dags unpause slow_dag
 
+        airflow dags trigger dummy_dag
+
         airflow scheduler -n 1
 
-        airflow dags trigger dummy_dag
+        airflow dags list
 
     - run: pip install requests
 
