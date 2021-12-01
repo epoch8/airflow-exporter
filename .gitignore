@@ -16,3 +16,4 @@ build/
 .venv/
 .mypy_cache/
 pythonenv*/
+.venv/

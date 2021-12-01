@@ -177,15 +177,16 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
     res = []
 
     for i in sql_res:
-        if driver in ('mysqldb', 'mysqlconnector', 'pysqlite'):
-            dag_duration = i.duration
-        else:
-            dag_duration = i.duration.seconds
+        if i.duration is not None:
+            if driver in ('mysqldb', 'mysqlconnector', 'pysqlite'):
+                dag_duration = i.duration
+            else:
+                dag_duration = i.duration.seconds
 
-        res.append(DagDurationInfo(
-            dag_id = i.dag_id,
-            duration = dag_duration
-        ))
+            res.append(DagDurationInfo(
+                dag_id = i.dag_id,
+                duration = dag_duration
+            ))
 
     return res        
 
@@ -198,7 +199,13 @@ def get_dag_labels(dag_id: str) -> Dict[str, str]:
         return dict()
 
     labels = dag.params.get('labels', {})
-    labels = labels.get('__var', {})
+
+    if hasattr(labels, 'value'):
+        # Airflow version 2.2.*
+        labels = {k:v for k,v in labels.value.items() if not k.startswith('__')}
+    else:
+        # Airflow version 2.0.*, 2.1.*
+        labels = labels.get('__var', {})
 
     return labels
 
