@@ -8,4 +8,6 @@ export RUN_DB='docker run -d
     mysql:5.7
     --explicit_defaults_for_timestamp=1'
 
-export SQL_ALCHEMY_CONN=mysql://airflow:airflow@127.0.0.1:3306/airflow
+export PROVIDER="apache-airflow-providers-mysql"
+
+export SQL_ALCHEMY_CONN="mysql://airflow:airflow@127.0.0.1:3306/airflow"

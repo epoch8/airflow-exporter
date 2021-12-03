@@ -6,4 +6,6 @@ export RUN_DB='docker run -d
     --env POSTGRES_DB=airflow
     postgres:9.6'
 
-export SQL_ALCHEMY_CONN=postgresql://airflow:airflow@localhost/airflow
+export PROVIDER="apache-airflow-providers-postgres"
+
+export SQL_ALCHEMY_CONN="postgresql://airflow:airflow@localhost/airflow"

@@ -40,10 +40,11 @@ jobs:
       run: |
         . ./tests/env-${{ matrix.db }}.sh
         $RUN_DB
+        echo ::set-output name=provider::$PROVIDER
         echo ::set-output name=sql_alchemy_conn::$SQL_ALCHEMY_CONN
 
     - name: Install Airflow
-      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" psycopg2-binary wtforms==2.3.3
+      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" "${{ steps.setup-db.outputs.provider }} == ${{ matrix.airflow-version }}" wtforms==2.3.3
 
     - name: Install airflow-exporter
       run: pip install .
