@@ -21,9 +21,13 @@ jobs:
           - "2.0.2"
           - "2.1.4"
           - "2.2.1"
+        db:
+          - postgres-9.6
+          - mysql-5.7
 
     env:
       AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests/
+      AIRFLOW__CORE__LOAD_EXAMPLES: False
 
     steps:
     - uses: actions/checkout@v1
@@ -32,7 +36,11 @@ jobs:
         python-version: '3.8'
 
     - name: Setup database
-      run: docker-compose -f tests/docker-compose.yml up -d
+      id: setup-db
+      run: |
+        . ./env-${{ matrix.db }}.sh
+        ${ RUN_DB }
+        echo ::set-output name=sql_alchemy_conn::${SQL_ALCHEMY_CONN}
 
     - name: Install Airflow
       run: pip install "apache-airflow == ${{ matrix.airflow-version }}" psycopg2-binary wtforms==2.3.3
@@ -41,9 +49,13 @@ jobs:
       run: pip install .
 
     - name: Init Airflow DB
+      env:
+        AIRFLOW__CORE__SQL_ALCHEMY_CONN: ${{ steps.setup-db.outputs.sql_alchemy_conn }}
       run: airflow db init
 
     - name: Prepare DAG statuses
+      env:
+        AIRFLOW__CORE__SQL_ALCHEMY_CONN: ${{ steps.setup-db.outputs.sql_alchemy_conn }}
       run: |
         airflow dags list
 
@@ -59,6 +71,8 @@ jobs:
     - run: pip install requests
 
     - name: Wait for Airflow and query metrics
+      env:
+        AIRFLOW__CORE__SQL_ALCHEMY_CONN: ${{ steps.setup-db.outputs.sql_alchemy_conn }}
       run: |
         airflow webserver -D
 
