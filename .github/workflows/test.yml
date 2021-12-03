@@ -38,7 +38,7 @@ jobs:
     - name: Setup database
       id: setup-db
       run: |
-        . ./env-${{ matrix.db }}.sh
+        . ./tests/env-${{ matrix.db }}.sh
         ${ RUN_DB }
         echo ::set-output name=sql_alchemy_conn::${SQL_ALCHEMY_CONN}
 
