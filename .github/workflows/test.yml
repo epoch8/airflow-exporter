@@ -18,12 +18,13 @@ jobs:
       fail-fast: false
       matrix:
         airflow-version:
-          - "2.0.2"
+          # - "2.0.2"
           - "2.1.4"
           - "2.2.1"
         db:
           - postgres-9.6
           - mysql-5.7
+          - mysql-8.0
 
     env:
       AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests/
