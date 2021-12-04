@@ -8,4 +8,4 @@ export RUN_DB='docker run -d
 
 export PROVIDER="apache-airflow-providers-postgres"
 
-export SQL_ALCHEMY_CONN="postgresql://airflow:airflow@localhost/airflow"
+export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://airflow:airflow@localhost/airflow"

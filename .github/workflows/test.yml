@@ -35,6 +35,9 @@ jobs:
     - uses: actions/setup-python@v2
       with:
         python-version: '3.8'
+        cache: pip
+    
+    - run: pip install wheel
 
     - name: Setup database
       id: setup-db
@@ -42,7 +45,7 @@ jobs:
         . ./tests/env-${{ matrix.db }}.sh
         $RUN_DB
         echo ::set-output name=provider::$PROVIDER
-        echo ::set-output name=sql_alchemy_conn::$SQL_ALCHEMY_CONN
+        echo ::set-output name=sql_alchemy_conn::$AIRFLOW__CORE__SQL_ALCHEMY_CONN
 
     - name: Install Airflow
       run: pip install "apache-airflow == ${{ matrix.airflow-version }}" ${{ steps.setup-db.outputs.provider }} wtforms==2.3.3
