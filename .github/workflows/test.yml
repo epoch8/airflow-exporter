@@ -18,32 +18,54 @@ jobs:
       fail-fast: false
       matrix:
         airflow-version:
-          - "2.0.2"
+          # - "2.0.2"
           - "2.1.4"
           - "2.2.1"
+        db:
+          - "postgres-9.6"
+          - "postgres-12.0"
+          - "mysql-5.7"
+          - "mysql-8.0"
+        exclude:
+          # Airflow 2.1.4 does not play well with MySQL 8.0: https://github.com/apache/airflow/issues/9069
+          # I did not understand how to setup MySQL properly for tests
+          - airflow-version: "2.1.4"
+            db: "mysql-8.0"
 
     env:
       AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests/
+      AIRFLOW__CORE__LOAD_EXAMPLES: False
 
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-python@v2
       with:
         python-version: '3.8'
+    
+    - run: pip install wheel
 
     - name: Setup database
-      run: docker-compose -f tests/docker-compose.yml up -d
+      id: setup-db
+      run: |
+        . ./tests/env-${{ matrix.db }}.sh
+        $RUN_DB
+        echo ::set-output name=provider::$PROVIDER
+        echo ::set-output name=sql_alchemy_conn::$AIRFLOW__CORE__SQL_ALCHEMY_CONN
 
     - name: Install Airflow
-      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" psycopg2-binary wtforms==2.3.3
+      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" ${{ steps.setup-db.outputs.provider }} wtforms==2.3.3
 
     - name: Install airflow-exporter
       run: pip install .
 
     - name: Init Airflow DB
+      env:
+        AIRFLOW__CORE__SQL_ALCHEMY_CONN: ${{ steps.setup-db.outputs.sql_alchemy_conn }}
       run: airflow db init
 
     - name: Prepare DAG statuses
+      env:
+        AIRFLOW__CORE__SQL_ALCHEMY_CONN: ${{ steps.setup-db.outputs.sql_alchemy_conn }}
       run: |
         airflow dags list
 
@@ -59,6 +81,8 @@ jobs:
     - run: pip install requests
 
     - name: Wait for Airflow and query metrics
+      env:
+        AIRFLOW__CORE__SQL_ALCHEMY_CONN: ${{ steps.setup-db.outputs.sql_alchemy_conn }}
       run: |
         airflow webserver -D
 

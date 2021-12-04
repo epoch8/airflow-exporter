@@ -1,11 +1,9 @@
-import typing
 from typing import List, Tuple, Optional, Generator, NamedTuple, Dict
 
 from dataclasses import dataclass
 import itertools
 
-from sqlalchemy import func
-from sqlalchemy import text
+from sqlalchemy import func, text, and_
 
 from flask import Response, current_app
 from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
@@ -69,20 +67,31 @@ def get_last_dagrun_info() -> List[DagStatusInfo]:
     '''
     assert(Session is not None)
 
-    last_dagrun_query = Session.query(
-        DagRun.dag_id, DagRun.state,
-        func.row_number().over(partition_by=DagRun.dag_id,
-                               order_by=DagRun.execution_date.desc()).label('row_number')
-    ).subquery()
+    last_run_date_by_dag_id = (
+        Session.query(
+            DagRun.dag_id,
+            func.max(DagRun.execution_date).label('execution_date')
+        )
+        .select_from(DagRun)
+        .group_by(DagRun.dag_id)
+        .subquery()
+    )
 
     sql_res = (
         Session.query(
-            last_dagrun_query.c.dag_id, last_dagrun_query.c.state, last_dagrun_query.c.row_number,
-            DagModel.owners
+            DagRun.dag_id,
+            DagRun.state,
+            DagModel.owners,
         )
-        .filter(last_dagrun_query.c.row_number == 1)
-        .join(DagModel, DagModel.dag_id == last_dagrun_query.c.dag_id)
-        .join(SerializedDagModel, SerializedDagModel.dag_id == last_dagrun_query.c.dag_id)
+        .select_from(last_run_date_by_dag_id)
+        .join(
+            DagRun,
+            and_(
+                DagRun.dag_id == last_run_date_by_dag_id.c.dag_id,
+                DagRun.execution_date == last_run_date_by_dag_id.c.execution_date,
+            ),
+        )
+        .join(DagModel, DagModel.dag_id == DagRun.dag_id)
         .all()
     )
 
@@ -344,12 +353,4 @@ RBACmetricsView = {
 class AirflowPrometheusPlugins(AirflowPlugin):
     '''plugin for show metrics'''
     name = "airflow_prometheus_plugin"
-    operators = [] # type: ignore
-    hooks = [] # type: ignore
-    executors = [] # type: ignore
-    macros = [] # type: ignore
-    admin_views = [] # type: ignore
-    flask_blueprints = [] # type: ignore
-    menu_links = [] # type: ignore
     appbuilder_views = [RBACmetricsView]
-    appbuilder_menu_items = [] # type: ignore

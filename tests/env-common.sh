@@ -1,0 +1,1 @@
+export AIRFLOW__CORE__LOAD_EXAMPLES=False
