@@ -22,9 +22,14 @@ jobs:
           - "2.1.4"
           - "2.2.1"
         db:
-          - postgres-9.6
-          - mysql-5.7
-          - mysql-8.0
+          - "postgres-9.6"
+          - "mysql-5.7"
+          - "mysql-8.0"
+        exclude:
+          # Airflow 2.1.4 does not play well with MySQL 8.0: https://github.com/apache/airflow/issues/9069
+          # I did not understand how to setup MySQL properly for tests
+          - airflow-version: "2.1.4"
+            db: "mysql-8.0"
 
     env:
       AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests/
