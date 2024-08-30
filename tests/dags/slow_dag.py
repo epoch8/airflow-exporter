@@ -1,7 +1,14 @@
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.bash_operator import BashOperator
+try:
+    from airflow.operators.dummy_operator import DummyOperator
+except ImportError:
+    from airflow.operators.empty import EmptyOperator as DummyOperator
+
+try:
+    from airflow.operators.bash_operator import BashOperator
+except ImportError:
+    from airflow.operators.bash import BashOperator
 
 
 default_args = {
