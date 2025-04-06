@@ -1,1 +1,6 @@
 webserver_config.py
+airflow.cfg
+airflow-*.err
+airflow-*.log
+airflow-*.out
+airflow-*.pid
