@@ -1,14 +1,9 @@
-import typing
-from typing import List, Tuple, Optional, Generator, NamedTuple, Dict
+from typing import List, Generator, Dict
 
 from dataclasses import dataclass
-import itertools
 
 from sqlalchemy import func
 from sqlalchemy import text
-
-from flask import Response
-# from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
 
 from airflow.plugins_manager import AirflowPlugin
 from airflow.settings import Session
