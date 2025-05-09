@@ -39,7 +39,7 @@ jobs:
       run: docker compose -f tests/docker-compose.yml up -d
 
     - name: Install Airflow
-      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" psycopg2-binary wtforms==2.3.3 --constraint https://raw.githubusercontent.com/apache/airflow/constraints-${{ matrix.airflow-version }}/constraints-${{ matrix.python-version }}.txt
+      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" psycopg2-binary wtforms --constraint https://raw.githubusercontent.com/apache/airflow/constraints-${{ matrix.airflow-version }}/constraints-${{ matrix.python-version }}.txt
 
     - name: Install airflow-exporter
       run: pip install .
