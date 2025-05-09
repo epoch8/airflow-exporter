@@ -21,6 +21,7 @@ jobs:
           - "2.0.2"
           - "2.1.4"
           - "2.2.1"
+          - "2.3.4"
 
     env:
       AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests/
