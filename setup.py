@@ -29,7 +29,7 @@ setup(
     packages=["airflow_exporter"],
     setup_requires=["setuptools_scm"],
     install_requires=[
-        "apache-airflow>=2.0.0,<2.7",
+        "apache-airflow>=2.0.0,<2.8",
         "prometheus_client>=0.4.2",
     ],
     entry_points={
