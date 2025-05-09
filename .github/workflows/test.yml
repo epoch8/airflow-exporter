@@ -23,7 +23,7 @@ jobs:
           - "2.2.1"
           - "2.3.4"
         python-version:
-          - "3.8"
+          - "3.9"
 
     env:
       AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests/
@@ -48,6 +48,8 @@ jobs:
 
     - name: Prepare DAG statuses
       run: |
+        airflow scheduler -n 1
+
         airflow dags list
 
         airflow dags unpause dummy_dag
