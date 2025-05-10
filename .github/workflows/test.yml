@@ -40,6 +40,8 @@ jobs:
             python-version: "3.8"
           - airflow-version: "2.10.5"
             python-version: "3.8"
+          - airflow-version: "3.0.0"
+            python-version: "3.9"
 
     env:
       AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests/
