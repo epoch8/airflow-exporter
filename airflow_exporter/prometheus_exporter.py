@@ -201,8 +201,11 @@ def get_dag_labels(dag_id: str) -> Dict[str, str]:
     labels = dag.params.get('labels', {})
 
     if hasattr(labels, 'items'):
-        # Airflow version 2.2.*
+        # Airflow version 2.3+
         labels = {k:v for k,v in labels.items() if not k.startswith('__')}
+    elif hasattr(labels, 'value'):
+        # Airflow version 2.2.*
+        labels = {k:v for k,v in labels.value.items() if not k.startswith('__')}
     else:
         # Airflow version 2.0.*, 2.1.*
         labels = labels.get('__var', {})
