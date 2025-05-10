@@ -62,7 +62,7 @@ jobs:
       run: pip install .
 
     - name: Init Airflow DB
-      run: airflow db init
+      run: airflow db migrate
 
     - name: Prepare DAG statuses
       run: |
