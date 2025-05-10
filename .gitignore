@@ -17,3 +17,5 @@ build/
 .mypy_cache/
 pythonenv*/
 .venv/
+
+*.pid

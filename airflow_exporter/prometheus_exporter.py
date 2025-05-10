@@ -330,7 +330,7 @@ class RBACMetrics(FABBaseView):
     route_base = "/admin/metrics/"
     @FABexpose('/')
     def list(self):
-        return Response(generate_latest(), mimetype='text')
+        return Response(generate_latest(), mimetype='text/plain')
 
 
 # Metrics View for Flask app builder used in airflow with rbac enabled

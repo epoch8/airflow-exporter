@@ -21,6 +21,16 @@ jobs:
           - "2.0.2"
           - "2.1.4"
           - "2.2.1"
+          - "2.3.4"
+          - "2.4.3"
+          - "2.5.3"
+          - "2.6.3"
+          - "2.7.3"
+          - "2.8.4"
+          - "2.9.3"
+          - "2.10.5"
+        python-version:
+          - "3.9"
 
     env:
       AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests/
@@ -29,13 +39,13 @@ jobs:
     - uses: actions/checkout@v1
     - uses: actions/setup-python@v2
       with:
-        python-version: '3.8'
+        python-version: ${{ matrix.python-version }}
 
     - name: Setup database
-      run: docker-compose -f tests/docker-compose.yml up -d
+      run: docker compose -f tests/docker-compose.yml up -d
 
     - name: Install Airflow
-      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" psycopg2-binary wtforms==2.3.3
+      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" psycopg2-binary wtforms --constraint https://raw.githubusercontent.com/apache/airflow/constraints-${{ matrix.airflow-version }}/constraints-${{ matrix.python-version }}.txt
 
     - name: Install airflow-exporter
       run: pip install .
@@ -45,6 +55,8 @@ jobs:
 
     - name: Prepare DAG statuses
       run: |
+        airflow scheduler -n 1
+
         airflow dags list
 
         airflow dags unpause dummy_dag
