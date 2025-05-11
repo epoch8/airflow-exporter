@@ -99,5 +99,5 @@ Value: 0 or 1 depending on wherever the current state of each `dag_id` is `statu
 
 ## License
 
-Distributed under the BSD license. See [LICENSE](LICENSE) for more
+Distributed under the MIT license. See [LICENSE](LICENSE) for more
 information.
