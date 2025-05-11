@@ -89,6 +89,7 @@ Labels:
 * `dag_id`
 * `owner`
 * `status`
+* `paused`
 
 Value: number of dags in a specific status.
 
@@ -108,6 +109,7 @@ Labels:
 * `dag_id`
 * `owner`
 * `status`
+* `paused`
 
 Value: 0 or 1 depending on wherever the current state of each `dag_id` is `status`.
 
