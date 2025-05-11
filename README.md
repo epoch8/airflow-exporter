@@ -4,18 +4,28 @@ Exposes dag and task based metrics from Airflow to a Prometheus compatible endpo
 
 ## Compatibility with Airflow versions
 
-### >=2.0
-Current version is compatible with Airflow 2.0+
+### >=3
+
+Not compatible yet
+
+### >=2.0, <3
+
+Versions 1.5.* are compatible with Airflow 2.0+, but does not work with 3+
 
 ### <=1.10.14, >=1.10.3
+
 Version v1.3.2 is compatible
 
 **Note: Airflow 1.10.14 with Python 3.8 users**
 
-You should install `importlib-metadata` package in order for plugin to be loaded. See [#85](https://github.com/epoch8/airflow-exporter/issues/85) for details.
+You should install `importlib-metadata` package in order for plugin to be
+loaded. See [#85](https://github.com/epoch8/airflow-exporter/issues/85) for
+details.
 
 ### <1.10.3
-Version [v0.5.4](https://github.com/epoch8/airflow-exporter/releases/tag/v0.5.4) is compatible
+
+Version [v0.5.4](https://github.com/epoch8/airflow-exporter/releases/tag/v0.5.4)
+is compatible
 
 ## Install
 
@@ -27,7 +37,8 @@ That's it. You're done.
 
 ## Exporting extra labels to Prometheus
 
-It is possible to add extra labels to DAG-related metrics by providing `labels` dict to DAG `params`.
+It is possible to add extra labels to DAG-related metrics by providing `labels`
+dict to DAG `params`.
 
 ### Example
 
@@ -45,9 +56,12 @@ dag = DAG(
 )
 ```
 
-Label `env` with value `test` will be added to all metrics related to `dummy_dag`:
+Label `env` with value `test` will be added to all metrics related to
+`dummy_dag`:
 
-`airflow_dag_status{dag_id="dummy_dag",env="test",owner="owner",status="running"} 12.0`
+```
+airflow_dag_status{dag_id="dummy_dag",env="test",owner="owner",status="running"} 12.0
+```
 
 ## Metrics
 
