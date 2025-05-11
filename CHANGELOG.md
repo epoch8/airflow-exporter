@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## WIP
+
+- Fix the problem where customised dag.params.labels Dict cannot be considered
+  in the dag labels [#118](https://github.com/epoch8/airflow-exporter/pull/118)
+  by @zemin-piao
+
 ## 1.5.3
 
 - Fix Airflow 2.2.* compatiblity [#108](https://github.com/epoch8/airflow-exporter/issues/108)
