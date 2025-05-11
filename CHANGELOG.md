@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 - Fix Airflow 2.2.* compatiblity
   [#108](https://github.com/epoch8/airflow-exporter/issues/108)
+- (post1) Restrict Airflow version to less than 3
 
 ## 1.5.2
 
