@@ -75,7 +75,7 @@ jobs:
     - name: Prepare DAG statuses
       run: | 
         pwd
-        ls /home/runner/work/airflow-exporter/airflow-exporter/tests
+        ls /home/runner/work/airflow-exporter/airflow-exporter/tests/dags
         airflow scheduler -n 3
 
         airflow dags list
