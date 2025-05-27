@@ -1,20 +1,16 @@
-import typing
-from typing import List, Tuple, Optional, Generator, NamedTuple, Dict
+from typing import List, Generator, Dict
 
 from dataclasses import dataclass
-import itertools
 
 from sqlalchemy import func
 from sqlalchemy import text
-
-from flask import Response, current_app
-from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
 
 from airflow.plugins_manager import AirflowPlugin
 from airflow.settings import Session
 from airflow.models import TaskInstance, DagModel, DagRun
 from airflow.models.serialized_dag import SerializedDagModel
 from airflow.utils.state import State
+from airflow.version import version as airflow_version
 
 # Importing base classes that we need to derive
 from prometheus_client import generate_latest, REGISTRY
@@ -22,6 +18,20 @@ from prometheus_client.core import GaugeMetricFamily, Metric
 from prometheus_client.samples import Sample
 
 import itertools
+
+from packaging.version import parse as parse_version
+import logging
+
+log = logging.getLogger(__name__)
+use_fastapi = parse_version(airflow_version).major >= 3
+
+if use_fastapi:
+    from airflow.models.dagbag import DagBag
+
+    GLOBAL_DAGBAG = DagBag()
+else:
+    from flask import current_app
+
 
 @dataclass
 class DagStatusInfo:
@@ -69,11 +79,18 @@ def get_last_dagrun_info() -> List[DagStatusInfo]:
     '''
     assert(Session is not None)
 
-    last_dagrun_query = Session.query(
-        DagRun.dag_id, DagRun.state,
-        func.row_number().over(partition_by=DagRun.dag_id,
-                               order_by=DagRun.execution_date.desc()).label('row_number')
-    ).subquery()
+    if use_fastapi:
+        last_dagrun_query = Session.query(
+            DagRun.dag_id, DagRun.state,
+            func.row_number().over(partition_by=DagRun.dag_id,
+                                   order_by=DagRun.logical_date.desc()).label('row_number')
+        ).subquery()
+    else:
+        last_dagrun_query = Session.query(
+            DagRun.dag_id, DagRun.state,
+            func.row_number().over(partition_by=DagRun.dag_id,
+                                   order_by=DagRun.execution_date.desc()).label('row_number')
+        ).subquery()
 
     sql_res = (
         Session.query(
@@ -193,7 +210,7 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
 
 def get_dag_labels(dag_id: str) -> Dict[str, str]:
     # reuse airflow webserver dagbag
-    dag = current_app.dag_bag.get_dag(dag_id)
+    dag = GLOBAL_DAGBAG.get_dag(dag_id) if use_fastapi else current_app.dag_bag.get_dag(dag_id)
 
     if dag is None:
         return dict()
@@ -328,31 +345,62 @@ class MetricsCollector(object):
 
 
 REGISTRY.register(MetricsCollector())
+log.info("Registered prom-export")
 
-class RBACMetrics(FABBaseView):
-    route_base = "/admin/metrics/"
-    @FABexpose('/')
-    def list(self):
-        return Response(generate_latest(), mimetype='text/plain')
+if use_fastapi:
+    # Support for airflow 3.X using a local fastapi app
+    from fastapi import FastAPI, APIRouter
+    from fastapi.responses import PlainTextResponse, Response
+
+    fastapi_app = FastAPI()
+    metrics_router = APIRouter()
 
 
-# Metrics View for Flask app builder used in airflow with rbac enabled
-RBACmetricsView = {
-    "view": RBACMetrics(),
-    "name": "Metrics",
-    "category": "Admin"
-}
+    @metrics_router.get("/", include_in_schema=False)
+    @metrics_router.get("", include_in_schema=False)
+    async def metrics():
+        return Response(generate_latest(), media_type="text/plain")
+
+    fastapi_app.include_router(metrics_router, prefix="/metrics")
+
+
+    FASTAPI_APP = {
+        "app": fastapi_app,
+        "name": "Prometheus metrics",
+        "url_prefix": "/admin"
+    }
+else:
+    # keep backward support for airflow 2.X
+    from flask_appbuilder import BaseView as FABBaseView, expose as FABexpose
+    from flask import Response
+
+    class RBACMetrics(FABBaseView):
+        route_base = "/admin/metrics/"
+
+        @FABexpose('/')
+        def list(self):
+            return Response(generate_latest(), mimetype='text/plain')
+
+
+    RBACmetricsView = {
+        "view": RBACMetrics(),
+        "name": "metrics",
+        "category": "Admin"
+    }
 
 
 class AirflowPrometheusPlugins(AirflowPlugin):
     '''plugin for show metrics'''
-    name = "airflow_prometheus_plugin"
-    operators = [] # type: ignore
-    hooks = [] # type: ignore
-    executors = [] # type: ignore
-    macros = [] # type: ignore
-    admin_views = [] # type: ignore
-    flask_blueprints = [] # type: ignore
-    menu_links = [] # type: ignore
-    appbuilder_views = [RBACmetricsView]
-    appbuilder_menu_items = [] # type: ignore
+    name = 'airflow_prometheus_plugin'
+    operators = []
+    hooks = []
+    executors = []
+    macros = []
+    admin_views = []
+    flask_blueprints = []
+    menu_links = []
+    if use_fastapi:
+        fastapi_apps = [FASTAPI_APP]
+    else:
+        appbuilder_views = [RBACmetricsView]
+        appbuilder_menu_items = []

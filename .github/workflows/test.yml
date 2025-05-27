@@ -11,9 +11,9 @@ on:
 jobs:
 
   test:
- 
+
     runs-on: ubuntu-latest
- 
+
     strategy:
       fail-fast: false
       matrix:
@@ -40,6 +40,8 @@ jobs:
             python-version: "3.8"
           - airflow-version: "2.10.5"
             python-version: "3.8"
+          - airflow-version: "3.0.0"
+            python-version: "3.9"
 
     env:
       AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests/
@@ -60,7 +62,7 @@ jobs:
       run: pip install .
 
     - name: Init Airflow DB
-      run: airflow db init
+      run: airflow db migrate
 
     - name: Prepare DAG statuses
       run: |
@@ -81,6 +83,13 @@ jobs:
 
     - name: Wait for Airflow and query metrics
       run: |
-        airflow webserver -D
+        MAJOR=${{ matrix.airflow-version%%.* }}
+        if [[ "$MAJOR" -ge 3 ]]; then
+          echo "Using API server (Airflow ${{ matrix.airflow-version }})"
+          airflow api-server -D
+        else
+          echo "Using Webserver (Airflow ${{ matrix.airflow-version }})"
+          airflow webserver -D
+        fi
 
         python tests/test_metrics_up.py
