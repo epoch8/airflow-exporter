@@ -1,7 +1,14 @@
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.bash_operator import BashOperator
+from airflow.version import version as airflow_version
+from packaging.version import parse as parse_version
+
+if parse_version(airflow_version).major >= 3:
+    from airflow.operators.empty import EmptyOperator as DummyOperator
+    from airflow.operators.bash import BashOperator
+else:
+    from airflow.operators.dummy_operator import DummyOperator
+    from airflow.operators.bash_operator import BashOperator
 
 
 default_args = {
