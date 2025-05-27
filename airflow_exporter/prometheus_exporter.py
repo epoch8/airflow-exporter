@@ -349,21 +349,25 @@ log.info("Registered prom-export")
 
 if use_fastapi:
     # Support for airflow 3.X using a local fastapi app
-    from fastapi import FastAPI
+    from fastapi import FastAPI, APIRouter
     from fastapi.responses import PlainTextResponse, Response
 
     fastapi_app = FastAPI()
+    metrics_router = APIRouter()
 
 
-    @fastapi_app.get("/")
+    @metrics_router.get("/", include_in_schema=False)
+    @metrics_router.get("", include_in_schema=False)
     async def metrics():
         return Response(generate_latest(), media_type="text/plain")
+
+    fastapi_app.include_router(metrics_router, prefix="/metrics")
 
 
     FASTAPI_APP = {
         "app": fastapi_app,
         "name": "Prometheus metrics",
-        "url_prefix": "/admin/metrics"
+        "url_prefix": "/admin"
     }
 else:
     # keep backward support for airflow 2.X
