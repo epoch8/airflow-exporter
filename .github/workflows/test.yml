@@ -74,7 +74,7 @@ jobs:
 
     - name: Prepare DAG statuses
       run: |        
-        airflow scheduler -n 1
+        airflow scheduler -n 3
 
         airflow dags list
 
