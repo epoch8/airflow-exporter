@@ -44,7 +44,7 @@ jobs:
             python-version: "3.9"
 
     env:
-      AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests/
+      AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests
 
     steps:
     - uses: actions/checkout@v1
