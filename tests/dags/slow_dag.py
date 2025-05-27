@@ -11,6 +11,11 @@ else:
     from airflow.operators.bash_operator import BashOperator
 
 
+if parse_version(airflow_version).major >= 3:
+    schedule_kw = "schedule"
+else:
+    schedule_kw = "schedule_interval"
+
 default_args = {
     'owner': 'owner',
     'depends_on_past': False,
@@ -24,7 +29,7 @@ default_args = {
 
 dag = DAG(
     'slow_dag',
-    schedule_interval=timedelta(hours=5),
+    **{schedule_kw: timedelta(hours=5)},
     default_args=default_args,
     catchup=False,
     params={
