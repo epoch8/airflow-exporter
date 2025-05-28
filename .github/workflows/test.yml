@@ -41,10 +41,10 @@ jobs:
           - airflow-version: "2.10.5"
             python-version: "3.8"
           - airflow-version: "3.0.0"
-            python-version: "3.9"
+            python-version: "3.10"
 
     env:
-      AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests/
+      AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests
 
     steps:
     - uses: actions/checkout@v1
@@ -62,11 +62,21 @@ jobs:
       run: pip install .
 
     - name: Init Airflow DB
-      run: airflow db migrate
+      run: |
+        AIRFLOW_VERSION=${{ matrix.airflow-version }}
+        IFS='.' read -r MAJOR MINOR _ <<< "$AIRFLOW_VERSION"
+        
+        if (( $MAJOR > 2 )) || (( $MAJOR == 2 && $MINOR >= 7 )); then
+          airflow db migrate
+        else
+          airflow db init
+        fi
 
     - name: Prepare DAG statuses
-      run: |
-        airflow scheduler -n 1
+      run: | 
+        pwd
+        ls /home/runner/work/airflow-exporter/airflow-exporter/tests/dags
+        airflow scheduler -n 3
 
         airflow dags list
 
@@ -83,7 +93,8 @@ jobs:
 
     - name: Wait for Airflow and query metrics
       run: |
-        MAJOR=${{ matrix.airflow-version%%.* }}
+        AIRFLOW_VERSION=${{ matrix.airflow-version }}
+        IFS='.' read -r MAJOR _ _ <<< "$AIRFLOW_VERSION"
         if [[ "$MAJOR" -ge 3 ]]; then
           echo "Using API server (Airflow ${{ matrix.airflow-version }})"
           airflow api-server -D

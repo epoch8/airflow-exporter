@@ -356,6 +356,7 @@ if use_fastapi:
     metrics_router = APIRouter()
 
 
+
     @metrics_router.get("/", include_in_schema=False)
     @metrics_router.get("", include_in_schema=False)
     async def metrics():
