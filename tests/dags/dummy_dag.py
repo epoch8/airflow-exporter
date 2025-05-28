@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.version import version as airflow_version
 from packaging.version import parse as parse_version
-import inspect
 
 if parse_version(airflow_version).major >= 3:
     from airflow.operators.empty import EmptyOperator as DummyOperator
@@ -11,10 +10,6 @@ else:
     from airflow.operators.dummy_operator import DummyOperator
     from airflow.operators.bash_operator import BashOperator
 
-if parse_version(airflow_version).major >= 3:
-    schedule_kw = "schedule"
-else:
-    schedule_kw = "schedule_interval"
 
 default_args = {
     'owner': 'owner',
@@ -26,26 +21,18 @@ default_args = {
     'max_active_runs': 1,
 }
 
-dag_args = {
-    'dag_id': 'dummy_dag',
-    'schedule_interval': timedelta(hours=5),
-    'default_args': default_args,
-    'catchup': False,
-    'params': {
+dag = DAG(
+    'dummy_dag',
+    default_args=default_args,
+    catchup=False,
+    params={
         'labels': {
             'env': 'test',
             'label1': 'value1',
             'label2': 'value2'
         }
     }
-}
-
-sig = inspect.signature(DAG.__init__)
-
-if 'schedule_interval' not in sig.parameters:
-    dag_args['schedule'] = dag_args.pop('schedule_interval')
-
-dag = DAG(**dag_args)
+)
 
 dummy1 = DummyOperator(
     task_id='dummy_task_1',
