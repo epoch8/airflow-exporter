@@ -23,7 +23,7 @@ default_args = {
 
 
 dag = DAG(
-    'slow_dag',
+    dag_id='slow_dag',
     default_args=default_args,
     catchup=False,
     params={

@@ -22,7 +22,7 @@ default_args = {
 }
 
 dag = DAG(
-    'dummy_dag',
+    dag_id='dummy_dag',
     default_args=default_args,
     catchup=False,
     params={
