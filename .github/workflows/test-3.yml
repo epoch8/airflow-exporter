@@ -1,4 +1,4 @@
-name: Test airflow-exporter
+name: Test airflow-exporter with Airflow 3.x
 
 on:
   push:
@@ -11,38 +11,19 @@ on:
 jobs:
 
   test:
- 
+
     runs-on: ubuntu-latest
- 
+
     strategy:
       fail-fast: false
       matrix:
         include:
-          - airflow-version: "2.0.2"
-            python-version: "3.8"
-          - airflow-version: "2.1.4"
-            python-version: "3.8"
-          - airflow-version: "2.2.1"
-            python-version: "3.8"
-          - airflow-version: "2.3.4"
-            python-version: "3.8"
-          - airflow-version: "2.4.3"
-            python-version: "3.8"
-          - airflow-version: "2.5.3"
-            python-version: "3.8"
-          - airflow-version: "2.6.3"
-            python-version: "3.8"
-          - airflow-version: "2.7.3"
-            python-version: "3.8"
-          - airflow-version: "2.8.4"
-            python-version: "3.8"
-          - airflow-version: "2.9.3"
-            python-version: "3.8"
-          - airflow-version: "2.10.5"
-            python-version: "3.8"
+          - airflow-version: "3.0.1"
+            python-version: "3.10"
 
     env:
-      AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests/
+      AIRFLOW_MAJOR_VERSION: "3"
+      AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests
 
     steps:
     - uses: actions/checkout@v1
@@ -60,11 +41,14 @@ jobs:
       run: pip install .
 
     - name: Init Airflow DB
-      run: airflow db init
+      run: |
+        airflow db migrate
 
     - name: Prepare DAG statuses
-      run: |
-        airflow scheduler -n 1
+      run: | 
+        pwd
+        ls /home/runner/work/airflow-exporter/airflow-exporter/tests/dags
+        airflow dag-processor -n 1
 
         airflow dags list
 
@@ -73,7 +57,7 @@ jobs:
 
         airflow dags trigger dummy_dag
 
-        airflow scheduler -n 1
+        airflow dag-processor -n 1
 
         airflow dags list
 
@@ -81,6 +65,6 @@ jobs:
 
     - name: Wait for Airflow and query metrics
       run: |
-        airflow webserver -D
+        airflow api-server &
 
         python tests/test_metrics_up.py

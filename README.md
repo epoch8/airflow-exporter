@@ -6,7 +6,7 @@ Exposes dag and task based metrics from Airflow to a Prometheus compatible endpo
 
 ### >=3
 
-Not compatible yet
+Versions 1.6.0+ are compatible with Airflow 3.0+
 
 ### >=2.0, <3
 

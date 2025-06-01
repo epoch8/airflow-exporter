@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 1.6.0
+
+- Make airflow-exporter compatible with Airflow 3 by @drshott
+
 ## 1.5.4
 
 - Fix the problem where customised dag.params.labels Dict cannot be considered

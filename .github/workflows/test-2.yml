@@ -1,0 +1,89 @@
+name: Test airflow-exporter with Airflow 2.x
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+
+  test:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - airflow-version: "2.0.2"
+            python-version: "3.8"
+          - airflow-version: "2.1.4"
+            python-version: "3.8"
+          - airflow-version: "2.2.1"
+            python-version: "3.8"
+          - airflow-version: "2.3.4"
+            python-version: "3.8"
+          - airflow-version: "2.4.3"
+            python-version: "3.8"
+          - airflow-version: "2.5.3"
+            python-version: "3.8"
+          - airflow-version: "2.6.3"
+            python-version: "3.8"
+          - airflow-version: "2.7.3"
+            python-version: "3.8"
+          - airflow-version: "2.8.4"
+            python-version: "3.8"
+          - airflow-version: "2.9.3"
+            python-version: "3.8"
+          - airflow-version: "2.10.5"
+            python-version: "3.8"
+
+    env:
+      AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Setup database
+      run: docker compose -f tests/docker-compose.yml up -d
+
+    - name: Install Airflow
+      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" psycopg2-binary wtforms --constraint https://raw.githubusercontent.com/apache/airflow/constraints-${{ matrix.airflow-version }}/constraints-${{ matrix.python-version }}.txt
+
+    - name: Install airflow-exporter
+      run: pip install .
+
+    - name: Init Airflow DB
+      run: |
+        airflow db init
+
+    - name: Prepare DAG statuses
+      run: | 
+        pwd
+        ls /home/runner/work/airflow-exporter/airflow-exporter/tests/dags
+        airflow scheduler -n 3
+
+        airflow dags list
+
+        airflow dags unpause dummy_dag
+        airflow dags unpause slow_dag
+
+        airflow dags trigger dummy_dag
+
+        airflow scheduler -n 1
+
+        airflow dags list
+
+    - run: pip install requests
+
+    - name: Wait for Airflow and query metrics
+      run: |
+        airflow webserver -D
+
+        python tests/test_metrics_up.py
