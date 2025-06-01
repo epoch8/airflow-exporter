@@ -1,4 +1,4 @@
-name: Test airflow-exporter
+name: Test airflow-exporter with Airflow 2.x
 
 on:
   push:
@@ -40,8 +40,6 @@ jobs:
             python-version: "3.8"
           - airflow-version: "2.10.5"
             python-version: "3.8"
-          - airflow-version: "3.0.0"
-            python-version: "3.10"
 
     env:
       AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests
@@ -63,14 +61,7 @@ jobs:
 
     - name: Init Airflow DB
       run: |
-        AIRFLOW_VERSION=${{ matrix.airflow-version }}
-        IFS='.' read -r MAJOR MINOR _ <<< "$AIRFLOW_VERSION"
-        
-        if (( $MAJOR > 2 )) || (( $MAJOR == 2 && $MINOR >= 7 )); then
-          airflow db migrate
-        else
-          airflow db init
-        fi
+        airflow db init
 
     - name: Prepare DAG statuses
       run: | 
@@ -93,14 +84,6 @@ jobs:
 
     - name: Wait for Airflow and query metrics
       run: |
-        AIRFLOW_VERSION=${{ matrix.airflow-version }}
-        IFS='.' read -r MAJOR _ _ <<< "$AIRFLOW_VERSION"
-        if [[ "$MAJOR" -ge 3 ]]; then
-          echo "Using API server (Airflow ${{ matrix.airflow-version }})"
-          airflow api-server -D
-        else
-          echo "Using Webserver (Airflow ${{ matrix.airflow-version }})"
-          airflow webserver -D
-        fi
+        airflow webserver -D
 
         python tests/test_metrics_up.py
