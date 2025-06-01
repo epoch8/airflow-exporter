@@ -5,7 +5,12 @@ from requests.exceptions import ConnectionError
 import time
 
 AIRFLOW_BASE_URL = os.environ.get("AIRFLOW_BASE_URL", "http://localhost:8080")
-HEALTH_ENDPOINT = f"{AIRFLOW_BASE_URL}/health"
+AIRFLOW_MAJOR_VERSION = os.environ.get("AIRFLOW_MAJOR_VERSION", "2")
+
+if AIRFLOW_MAJOR_VERSION == "3":
+    HEALTH_ENDPOINT = f"{AIRFLOW_BASE_URL}/api/v2/monitor/health"
+else:
+    HEALTH_ENDPOINT = f"{AIRFLOW_BASE_URL}/health"
 METRICS_ENDPOINT = f"{AIRFLOW_BASE_URL}/admin/metrics/"
 
 for i in range(120):

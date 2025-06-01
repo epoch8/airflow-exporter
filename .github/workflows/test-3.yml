@@ -22,6 +22,7 @@ jobs:
             python-version: "3.10"
 
     env:
+      AIRFLOW_MAJOR_VERSION: "3"
       AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests
 
     steps:
