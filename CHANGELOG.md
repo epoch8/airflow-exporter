@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 1.7.0
+
+- Add `paused` label to DAG status metrics to indicate whether DAGs are paused
+  or active [#106](https://github.com/epoch8/airflow-exporter/pull/106) by
+  @danielcmessias
+
 ## 1.6.0
 
 - Make airflow-exporter compatible with Airflow 3 by @drshott
