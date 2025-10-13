@@ -39,6 +39,7 @@ class DagStatusInfo:
     dag_id: str
     status: str
     cnt: int
+    paused: str
     owner: str
 
 
@@ -61,6 +62,7 @@ def get_dag_status_info() -> List[DagStatusInfo]:
             dag_status_query.c.dag_id,
             dag_status_query.c.state,
             dag_status_query.c.cnt,
+            DagModel.is_paused,
             DagModel.owners,
         )
         .join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id)
@@ -71,7 +73,7 @@ def get_dag_status_info() -> List[DagStatusInfo]:
     )
 
     res = [
-        DagStatusInfo(dag_id=i.dag_id, status=i.state, cnt=i.cnt, owner=i.owners)
+        DagStatusInfo(dag_id=i.dag_id, status=i.state, cnt=i.cnt, paused=str(i.is_paused).lower(), owner=i.owners)
         for i in sql_res
     ]
 
@@ -106,6 +108,7 @@ def get_last_dagrun_info() -> List[DagStatusInfo]:
             last_dagrun_query.c.dag_id,
             last_dagrun_query.c.state,
             last_dagrun_query.c.row_number,
+            DagModel.is_paused,
             DagModel.owners,
         )
         .filter(last_dagrun_query.c.row_number == 1)
@@ -117,7 +120,7 @@ def get_last_dagrun_info() -> List[DagStatusInfo]:
     )
 
     res = [
-        DagStatusInfo(dag_id=i.dag_id, status=i.state, cnt=1, owner=i.owners)
+        DagStatusInfo(dag_id=i.dag_id, status=i.state, cnt=1, paused="true" if i.is_paused else "false", owner=i.owners)
         for i in sql_res
     ]
 
@@ -278,7 +281,7 @@ class MetricsCollector(Collector):
         dag_status_metric = GaugeMetricFamily(
             "airflow_dag_status",
             "Shows the number of dag starts with this status",
-            labels=["dag_id", "owner", "status"],
+            labels=["dag_id", "owner", "status", "paused"],
         )
 
         for dag in dag_info:
@@ -290,6 +293,7 @@ class MetricsCollector(Collector):
                     "dag_id": dag.dag_id,
                     "owner": dag.owner,
                     "status": dag.status,
+                    "paused": dag.paused,
                     **labels,
                 },
                 dag.cnt,
@@ -303,7 +307,7 @@ class MetricsCollector(Collector):
         dag_last_status_metric = GaugeMetricFamily(
             "airflow_dag_last_status",
             "Shows the status of last dagrun",
-            labels=["dag_id", "owner", "status"],
+            labels=["dag_id", "owner", "status", "paused"],
         )
 
         for dag in last_dagrun_info:
@@ -316,6 +320,7 @@ class MetricsCollector(Collector):
                         "dag_id": dag.dag_id,
                         "owner": dag.owner,
                         "status": status,
+                        "paused": dag.paused,
                         **labels,
                     },
                     int(dag.status == status),
