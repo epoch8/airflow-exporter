@@ -8,7 +8,6 @@ from sqlalchemy import text
 from airflow.plugins_manager import AirflowPlugin
 from airflow.settings import Session
 from airflow.models import TaskInstance, DagModel, DagRun
-from airflow.models.serialized_dag import SerializedDagModel
 from airflow.utils.state import State
 from airflow.version import version as airflow_version
 
@@ -66,9 +65,7 @@ def get_dag_status_info() -> List[DagStatusInfo]:
             DagModel.owners,
         )
         .join(DagModel, DagModel.dag_id == dag_status_query.c.dag_id)
-        .join(
-            SerializedDagModel, SerializedDagModel.dag_id == dag_status_query.c.dag_id
-        )
+        .filter(~DagModel.is_stale)
         .all()
     )
 
@@ -111,11 +108,8 @@ def get_last_dagrun_info() -> List[DagStatusInfo]:
             DagModel.is_paused,
             DagModel.owners,
         )
-        .filter(last_dagrun_query.c.row_number == 1)
+        .filter(last_dagrun_query.c.row_number == 1, ~DagModel.is_stale)
         .join(DagModel, DagModel.dag_id == last_dagrun_query.c.dag_id)
-        .join(
-            SerializedDagModel, SerializedDagModel.dag_id == last_dagrun_query.c.dag_id
-        )
         .all()
     )
 
@@ -162,9 +156,7 @@ def get_task_status_info() -> List[TaskStatusInfo]:
             DagModel.owners,
         )
         .join(DagModel, DagModel.dag_id == task_status_query.c.dag_id)
-        .join(
-            SerializedDagModel, SerializedDagModel.dag_id == task_status_query.c.dag_id
-        )
+        .filter(~DagModel.is_stale)
         .order_by(task_status_query.c.dag_id)
         .all()
     )
@@ -217,8 +209,8 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
             DagRun.dag_id, func.max(duration).label("duration")
         )
         .group_by(DagRun.dag_id)
-        .filter(DagRun.state == State.RUNNING)
-        .join(SerializedDagModel, SerializedDagModel.dag_id == DagRun.dag_id)
+        .filter(DagRun.state == State.RUNNING, ~DagModel.is_stale)
+        .join(DagModel, DagModel.dag_id == DagRun.dag_id)
         .all()
     )
 
