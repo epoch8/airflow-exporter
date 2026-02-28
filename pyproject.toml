@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = { file = "LICENSE" }
 authors = [
-  { name = "Epoch8" },
+  { name = "Andrey Tatarinov <a@tatarinov.co>" },
 ]
 classifiers = [
     "Environment :: Web Environment",
