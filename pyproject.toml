@@ -1,7 +1,3 @@
-[build-system]
-requires = ["hatchling", "hatch-vcs"]
-build-backend = "hatchling.build"
-
 [project]
 name = "airflow-exporter"
 dynamic = ["version"]
@@ -41,6 +37,10 @@ dev = [
     "types-requests",
     "mypy>=1.0",
 ]
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 [tool.hatch.version]
 source = "vcs"
