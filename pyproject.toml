@@ -1,2 +1,49 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "airflow-exporter"
+dynamic = ["version"]
+description = "Airflow plugin to export dag and task based metrics to Prometheus."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Epoch8" },
+]
+classifiers = [
+    "Environment :: Web Environment",
+    "Intended Audience :: System Administrators",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: System :: Monitoring",
+]
+keywords = ["airflow", "plugin", "prometheus", "exporter", "metrics"]
+dependencies = [
+    "apache-airflow>=2.0.0",
+    "prometheus-client>=0.4.2",
+    "packaging",
+]
+
+[project.urls]
+Homepage = "https://github.com/epoch8/airflow-exporter"
+
+[project.entry-points."airflow.plugins"]
+AirflowPrometheus = "airflow_exporter.prometheus_exporter:AirflowPrometheusPlugins"
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0",
+    "requests",
+    "types-requests",
+    "mypy>=1.0",
+]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["airflow_exporter"]
