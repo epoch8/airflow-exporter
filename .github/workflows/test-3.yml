@@ -18,7 +18,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - airflow-version: "3.0.1"
+          - airflow-version: "3.0.5"
+            python-version: "3.10"
+          - airflow-version: "3.1.7"
             python-version: "3.10"
 
     env:
