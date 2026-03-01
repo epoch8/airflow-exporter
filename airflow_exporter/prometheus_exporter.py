@@ -26,14 +26,6 @@ import logging
 log = logging.getLogger(__name__)
 use_fastapi = parse_version(airflow_version).major >= 3
 
-if use_fastapi:
-    from airflow.models.dagbag import DagBag
-
-    GLOBAL_DAGBAG = DagBag()
-else:
-    from flask import current_app
-
-
 @dataclass
 class DagStatusInfo:
     dag_id: str
@@ -237,17 +229,14 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
 
 
 def get_dag_labels(dag_id: str) -> Dict[str, str]:
-    # reuse airflow webserver dagbag
-    dag = (
-        GLOBAL_DAGBAG.get_dag(dag_id)
-        if use_fastapi
-        else current_app.dag_bag.get_dag(dag_id)  # type: ignore
-    )
+    serialized_dag = SerializedDagModel.get_dag(dag_id)
 
-    if dag is None:
+    if serialized_dag is None or not serialized_dag.params:
         return dict()
 
-    labels = dag.params.get("labels", {})
+    # Use dump() to safely get params (suppresses validation errors)
+    params_dict = serialized_dag.params.dump()
+    labels = params_dict.get("labels", {})
 
     if hasattr(labels, "items"):
         # Airflow version 2.3+
