@@ -1,11 +1,9 @@
 *.pyc
 /__pycache__/
 /venv/
-/.idea/
 .gitlab-ci.yml
 .gitkeep
 .env
-.vscode/
 .eggs/
 
 tests/logs
@@ -19,3 +17,4 @@ pythonenv*/
 .venv/
 
 *.pid
+uv.lock
