@@ -47,22 +47,22 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
 
-  # publish-to-pypi:
-  #   environment:
-  #     name: pypi
-  #     url: https://pypi.org/project/airflow-exporter/
-  #   permissions:
-  #     id-token: write
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - build
-  #     - publish-to-test-pypi
+  publish-to-pypi:
+    environment:
+      name: pypi
+      url: https://pypi.org/project/airflow-exporter/
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    needs:
+      - build
+      - publish-to-test-pypi
 
-  #   steps:
-  #     - uses: actions/download-artifact@v7
-  #       with:
-  #         name: python-package-distributions
-  #         path: dist/
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: python-package-distributions
+          path: dist/
 
-  #     - name: Publish distribution to PyPI
-  #       uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Publish distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
