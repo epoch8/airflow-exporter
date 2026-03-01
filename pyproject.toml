@@ -45,5 +45,8 @@ build-backend = "hatchling.build"
 [tool.hatch.version]
 source = "vcs"
 
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+
 [tool.hatch.build.targets.wheel]
 packages = ["airflow_exporter"]
