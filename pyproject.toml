@@ -19,9 +19,8 @@ classifiers = [
 ]
 keywords = ["airflow", "plugin", "prometheus", "exporter", "metrics"]
 dependencies = [
-    "apache-airflow>=2.0.0",
+    "apache-airflow>=2.0.0,<3.0.0",
     "prometheus-client>=0.4.2",
-    "packaging",
 ]
 
 [project.urls]
