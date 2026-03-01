@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - airflow-2
   pull_request:
     branches:
       - '*'
