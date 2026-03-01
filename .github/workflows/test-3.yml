@@ -20,6 +20,8 @@ jobs:
         include:
           - airflow-version: "3.0.1"
             python-version: "3.10"
+          - airflow-version: "3.1.7"
+            python-version: "3.10"
 
     env:
       AIRFLOW_MAJOR_VERSION: "3"
@@ -31,11 +33,8 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Setup database
-      run: docker compose -f tests/docker-compose.yml up -d
-
     - name: Install Airflow
-      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" psycopg2-binary wtforms --constraint https://raw.githubusercontent.com/apache/airflow/constraints-${{ matrix.airflow-version }}/constraints-${{ matrix.python-version }}.txt
+      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" wtforms --constraint https://raw.githubusercontent.com/apache/airflow/constraints-${{ matrix.airflow-version }}/constraints-${{ matrix.python-version }}.txt
 
     - name: Install airflow-exporter
       run: pip install .

@@ -6,11 +6,8 @@
 	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
-		"ghcr.io/devcontainers/features/python:1": {
-			"version": "3.9"
-		},
-		"ghcr.io/devcontainers-extra/features/poetry:2": {},
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers-extra/features/uv": {}
 	},
 	"containerEnv": {
 		"AIRFLOW_HOME": "/workspaces/airflow-exporter/tests"
