@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 - Drop support for Airflow < 3.0
 - Use SerializedDagModel for dag labels instead of DagBag
   [#131](https://github.com/epoch8/airflow-exporter/pull/131) by @ktaborski
+- Fix duplicate metrics
+  [#128](https://github.com/epoch8/airflow-exporter/pull/128) by @logan-hcg
 
 ## 1.7.0
 
