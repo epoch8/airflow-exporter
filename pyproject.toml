@@ -3,7 +3,7 @@ name = "airflow-exporter"
 dynamic = ["version"]
 description = "Airflow plugin to export dag and task based metrics to Prometheus."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = { file = "LICENSE" }
 authors = [
   { name = "Andrey Tatarinov <a@tatarinov.co>" },
@@ -19,9 +19,8 @@ classifiers = [
 ]
 keywords = ["airflow", "plugin", "prometheus", "exporter", "metrics"]
 dependencies = [
-    "apache-airflow>=2.0.0",
+    "apache-airflow>=3.0.0",
     "prometheus-client>=0.4.2",
-    "packaging",
 ]
 
 [project.urls]
