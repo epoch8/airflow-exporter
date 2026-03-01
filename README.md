@@ -4,9 +4,15 @@ Exposes dag and task based metrics from Airflow to a Prometheus compatible endpo
 
 ## Compatibility with Airflow versions
 
-This plugin supports Airflow 3+.
+### 3.*
 
-For Airflow 2 compatibility, please use versions < 2.0.0 of this plugin.
+Versions `>=2.0.0` will support only Airflow 3.0+
+
+### 2.*
+
+Versions `>=1.7.0,<2` are compatible with Airflow 2.*
+
+Development of Airflow 2 compatible version happens from `airflow-2` branch
 
 ## Install
 
