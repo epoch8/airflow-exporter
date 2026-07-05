@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## WIP 2.0.0
+## 2.0.0
 
 - Drop support for Airflow < 3.0
 - Use SerializedDagModel for dag labels instead of DagBag
