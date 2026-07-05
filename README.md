@@ -100,6 +100,9 @@ Labels:
 
 Value: 0 or 1 depending on wherever the current state of each `dag_id` is `status`.
 
+The "last" DAG run is the one with the most recent `updated_at` (not
+`logical_date`, which is `NULL` for manually triggered runs).
+
 ## License
 
 Distributed under the MIT license. See [LICENSE](LICENSE) for more
