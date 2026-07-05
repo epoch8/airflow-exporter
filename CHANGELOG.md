@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 2.1.0
+
+- Fix `airflow_dag_last_status` picking a manually triggered DAG run (which
+  has `logical_date` set to `NULL`) over the actual latest run. Order by
+  `updated_at` instead of `logical_date` when determining the last DAG run
+  [#137](https://github.com/epoch8/airflow-exporter/pull/137) by
+  @pierresouchay, fixes
+  [#136](https://github.com/epoch8/airflow-exporter/issues/136)
+
 ## 2.0.0
 
 - Drop support for Airflow < 3.0

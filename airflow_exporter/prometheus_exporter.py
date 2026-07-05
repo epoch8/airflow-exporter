@@ -76,7 +76,7 @@ def get_last_dagrun_info() -> List[DagStatusInfo]:
         DagRun.dag_id,
         DagRun.state,
         func.row_number()
-        .over(partition_by=DagRun.dag_id, order_by=DagRun.logical_date.desc())  # type: ignore
+        .over(partition_by=DagRun.dag_id, order_by=DagRun.updated_at.desc().nullslast())  # type: ignore
         .label("row_number"),
     ).subquery()
 
