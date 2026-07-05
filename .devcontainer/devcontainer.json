@@ -6,7 +6,7 @@
 	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
-		"ghcr.io/devcontainers/features/docker-in-docker:3": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:4": {},
 		"ghcr.io/devcontainers-extra/features/uv": {}
 	},
 	"containerEnv": {
