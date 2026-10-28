@@ -1,6 +1,7 @@
 import os
 import sys
 import requests
+from prometheus_client.parser import text_string_to_metric_families
 from requests.exceptions import ConnectionError
 import time
 
@@ -31,3 +32,14 @@ if res.status_code != 200:
     sys.exit(1)
 
 print(res.text)
+
+expected_labels = {"env": "test", "label1": "value1", "label2": "value2"}
+dummy_dag_labels = [
+    sample.labels
+    for family in text_string_to_metric_families(res.text)
+    for sample in family.samples
+    if sample.name == "airflow_dag_status" and sample.labels["dag_id"] == "dummy_dag"
+]
+if not dummy_dag_labels or not all(expected_labels.items() <= labels.items() for labels in dummy_dag_labels):
+    print("Dag labels are missing from airflow_dag_status")
+    sys.exit(1)

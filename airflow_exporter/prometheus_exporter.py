@@ -1,11 +1,14 @@
 import itertools
+import json
 import logging
+import zlib
 from dataclasses import dataclass
-from typing import Dict, Generator, List
+from typing import Any, Dict, Generator, List, Tuple
 
 from airflow.models import DagModel, DagRun, TaskInstance
 from airflow.models.serialized_dag import SerializedDagModel
 from airflow.plugins_manager import AirflowPlugin
+from airflow.serialization.serialized_objects import BaseSerialization
 from airflow.settings import Session
 from airflow.utils.state import State
 
@@ -208,14 +211,23 @@ def get_dag_duration_info() -> List[DagDurationInfo]:
     return res
 
 
-def get_dag_labels(dag_id: str) -> Dict[str, str]:
-    serialized_dag = SerializedDagModel.get_dag(dag_id)
+DAG_LABELS_BATCH_SIZE = 50
 
-    if serialized_dag is None or not serialized_dag.params:
+# dag_id -> (dag_hash, labels), so a Dag is only decoded again when its serialized version changes
+_dag_labels_cache: Dict[str, Tuple[str, Dict[str, str]]] = {}
+
+
+def _extract_labels(serialized_data: Any) -> Dict[str, str]:
+    if isinstance(serialized_data, str):
+        serialized_data = json.loads(serialized_data)
+
+    encoded_params = (serialized_data or {}).get("dag", {}).get("params")
+    if not encoded_params:
         return dict()
 
+    # Decode only the Dag-level params instead of the whole Dag.
     # Use dump() to safely get params (suppresses validation errors)
-    params_dict = serialized_dag.params.dump()
+    params_dict = BaseSerialization._deserialize_params_dict(encoded_params).dump()
     labels = params_dict.get("labels", {})
 
     if hasattr(labels, "items"):
@@ -224,6 +236,69 @@ def get_dag_labels(dag_id: str) -> Dict[str, str]:
         labels = {}
 
     return labels
+
+
+def get_all_dag_labels() -> Dict[str, Dict[str, str]]:
+    """get labels of all active dags
+    :return labels by dag_id
+    """
+    assert Session is not None
+
+    latest_created_query = (
+        Session.query(  # type: ignore
+            SerializedDagModel.dag_id,
+            func.max(SerializedDagModel.created_at).label("created_at"),
+        )
+        .group_by(SerializedDagModel.dag_id)
+        .subquery()
+    )
+
+    latest_versions = (
+        Session.query(  # type: ignore
+            SerializedDagModel.id,
+            SerializedDagModel.dag_id,
+            SerializedDagModel.dag_hash,
+        )
+        .join(
+            latest_created_query,
+            (SerializedDagModel.dag_id == latest_created_query.c.dag_id)
+            & (SerializedDagModel.created_at == latest_created_query.c.created_at),
+        )
+        .join(DagModel, DagModel.dag_id == SerializedDagModel.dag_id)
+        .filter(~DagModel.is_stale)
+        .all()
+    )
+
+    changed_ids = [
+        i.id
+        for i in latest_versions
+        if i.dag_id not in _dag_labels_cache or _dag_labels_cache[i.dag_id][0] != i.dag_hash
+    ]
+
+    for start in range(0, len(changed_ids), DAG_LABELS_BATCH_SIZE):
+        sql_res = (
+            Session.query(  # type: ignore
+                SerializedDagModel.dag_id,
+                SerializedDagModel.dag_hash,
+                SerializedDagModel._data,
+                SerializedDagModel._data_compressed,
+            )
+            .filter(SerializedDagModel.id.in_(changed_ids[start : start + DAG_LABELS_BATCH_SIZE]))
+            .all()
+        )
+
+        for dag_id, dag_hash, data, data_compressed in sql_res:
+            if data_compressed:
+                data = json.loads(zlib.decompress(data_compressed))
+
+            _dag_labels_cache[dag_id] = (dag_hash, _extract_labels(data))
+
+    active_dag_ids = {i.dag_id for i in latest_versions}
+    for dag_id in list(_dag_labels_cache):
+        if dag_id not in active_dag_ids:
+            del _dag_labels_cache[dag_id]
+
+    return {dag_id: labels for dag_id, (_, labels) in _dag_labels_cache.items()}
 
 
 def _add_gauge_metric(metric, labels, value):
@@ -240,6 +315,7 @@ class MetricsCollector(Collector):
         """collect metrics"""
 
         # Dag Metrics and collect all labels
+        labels_by_dag_id = get_all_dag_labels()
         dag_info = get_dag_status_info()
 
         dag_status_metric = GaugeMetricFamily(
@@ -249,7 +325,7 @@ class MetricsCollector(Collector):
         )
 
         for dag in dag_info:
-            labels = get_dag_labels(dag.dag_id)
+            labels = labels_by_dag_id.get(dag.dag_id, {})
 
             _add_gauge_metric(
                 dag_status_metric,
@@ -275,7 +351,7 @@ class MetricsCollector(Collector):
         )
 
         for dag in last_dagrun_info:
-            labels = get_dag_labels(dag.dag_id)
+            labels = labels_by_dag_id.get(dag.dag_id, {})
 
             for status in State.dag_states:
                 _add_gauge_metric(
@@ -299,7 +375,7 @@ class MetricsCollector(Collector):
             labels=["dag_id"],
         )
         for dag_duration in get_dag_duration_info():
-            labels = get_dag_labels(dag_duration.dag_id)
+            labels = labels_by_dag_id.get(dag_duration.dag_id, {})
 
             _add_gauge_metric(
                 dag_duration_metric,
@@ -319,7 +395,7 @@ class MetricsCollector(Collector):
         for dag_id, tasks in itertools.groupby(
             get_task_status_info(), lambda x: x.dag_id
         ):
-            labels = get_dag_labels(dag_id)
+            labels = labels_by_dag_id.get(dag_id, {})
 
             for task in tasks:
                 _add_gauge_metric(
