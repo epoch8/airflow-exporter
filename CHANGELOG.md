@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 2.2.0
+
+- Fix API server workers getting stuck on large DAGs: read DAG labels from the
+  serialized DAG params once per scrape, cached by `dag_hash`, instead of
+  deserializing every DAG for every metric
+  [#145](https://github.com/epoch8/airflow-exporter/pull/145) by @bbarbieru
+- Test against Airflow 3.3 and 3.4
+  [#148](https://github.com/epoch8/airflow-exporter/pull/148)
+
 ## 2.1.0
 
 - Fix `airflow_dag_last_status` picking a manually triggered DAG run (which
