@@ -19,11 +19,15 @@ jobs:
       matrix:
         include:
           - airflow-version: "3.0.6"
-            python-version: "3.10"
+            python-version: "3.12"
           - airflow-version: "3.1.8"
-            python-version: "3.10"
+            python-version: "3.12"
           - airflow-version: "3.2.2"
-            python-version: "3.10"
+            python-version: "3.12"
+          - airflow-version: "3.3.2"
+            python-version: "3.12"
+          - airflow-version: "3.4.0"
+            python-version: "3.12"
 
     env:
       AIRFLOW_MAJOR_VERSION: "3"
