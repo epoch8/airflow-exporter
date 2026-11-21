@@ -113,6 +113,10 @@ Labels:
 
 Value: 0 or 1 depending on wherever the current state of each `dag_id` is `status`.
 
+The latest DAG run is selected by descending `updated_at` when that field is
+available (Airflow 2.5+). On older Airflow 2 versions, selection falls back to
+`execution_date`.
+
 ## License
 
 Distributed under the MIT license. See [LICENSE](LICENSE) for more

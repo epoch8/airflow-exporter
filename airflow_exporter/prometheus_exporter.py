@@ -83,11 +83,17 @@ def get_last_dagrun_info() -> List[DagStatusInfo]:
     """
     assert Session is not None
 
+    # DagRun.updated_at was added in Airflow 2.5.0
+    if hasattr(DagRun, "updated_at"):
+        order_by = DagRun.updated_at.desc().nullslast()  # type: ignore
+    else:
+        order_by = DagRun.execution_date.desc()  # type: ignore
+
     last_dagrun_query = Session.query(  # type: ignore
         DagRun.dag_id,
         DagRun.state,
         func.row_number()
-        .over(partition_by=DagRun.dag_id, order_by=DagRun.execution_date.desc())  # type: ignore
+        .over(partition_by=DagRun.dag_id, order_by=order_by)
         .label("row_number"),
     ).subquery()
 

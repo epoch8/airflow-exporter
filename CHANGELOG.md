@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 1.8.0
+
+- Select the latest DAG run for `airflow_dag_last_status` by `updated_at`
+  instead of `execution_date`, matching the Airflow 3 version. Airflow < 2.5
+  has no `updated_at` on DAG runs and keeps using `execution_date`
+  [#147](https://github.com/epoch8/airflow-exporter/pull/147) by @Kobeep,
+  [#150](https://github.com/epoch8/airflow-exporter/pull/150)
+
 ## 1.7.0
 
 - Focus 1.7.0+ versions on Airflow 2 exclusively

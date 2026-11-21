@@ -13,14 +13,14 @@ jobs:
 
   test:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # Python 3.9 is not available for newer Ubuntu
 
     strategy:
       fail-fast: false
       matrix:
         include:
           - airflow-version: "2.0.2"
-            python-version: "3.9"
+            python-version: "3.8"  # no constraints file for Python 3.9
           - airflow-version: "2.1.4"
             python-version: "3.9"
           - airflow-version: "2.2.1"
@@ -46,13 +46,13 @@ jobs:
       AIRFLOW_HOME: /home/runner/work/airflow-exporter/airflow-exporter/tests
 
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v6
+    - uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Install Airflow
-      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" wtforms --constraint https://raw.githubusercontent.com/apache/airflow/constraints-${{ matrix.airflow-version }}/constraints-${{ matrix.python-version }}.txt
+      run: pip install "apache-airflow == ${{ matrix.airflow-version }}" wtforms packaging --constraint https://raw.githubusercontent.com/apache/airflow/constraints-${{ matrix.airflow-version }}/constraints-${{ matrix.python-version }}.txt
 
     - name: Install airflow-exporter
       run: pip install .
